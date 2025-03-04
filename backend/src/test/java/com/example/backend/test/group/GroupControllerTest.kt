@@ -11,13 +11,11 @@ import jakarta.servlet.http.Cookie;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,34 +24,33 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class GroupControllerTest {
+class GroupControllerTest {
 
     @Autowired
-    private GroupService groupService;
+    private lateinit var groupService : GroupService
 
     @Autowired
-    private MockMvc mvc;
-    @Autowired
-    private MemberRepository memberRepository;
+    private lateinit var mvc : MockMvc
 
-    @Value("${TEST_COOKIE}")
-    private String cookie;
+    @Autowired
+    private lateinit var memberRepository : MemberRepository
+
+    @Value("\${TEST_COOKIE}")
+    private lateinit var cookie : String
 
     @Test
     @DisplayName("그룹 생성")
-    void t1() throws Exception {
-        Optional<Member> member = memberRepository.findById(1L);
-        String accessToken = member.map(Member::getKakaoAccessToken).orElseThrow();
-        ResultActions resultActions = mvc.perform(
+    fun t1() {
+        val resultActions : ResultActions = mvc.perform(
                 post("/groups")
-                        .cookie(new Cookie("accessToken",cookie))
+                        .cookie(Cookie("accessToken",cookie))
                         .content("""
                                 {
                                   "title": "제목1",
@@ -63,36 +60,38 @@ public class GroupControllerTest {
                                   "status":"RECRUITING"
                                 }
                                 """)
-                        .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                        .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print());
 
-        GroupResponseDto groupResponseDto = groupService.create(new GroupRequestDto("제목1",
+        val groupResponseDto : GroupResponseDto = groupService.create(
+            GroupRequestDto(
+                "제목1",
                 "내용1",
                 5,
                 Arrays.asList(1L),
                 GroupStatus.RECRUITING),1L);
-        resultActions.andExpect(handler().handlerType(GroupController.class))
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("createGroup"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.title").value(groupResponseDto.getTitle()))
-                .andExpect(jsonPath("$.description").value(groupResponseDto.getDescription()))
-                .andExpect(jsonPath("$.memberId").value(groupResponseDto.getMemberId()))
-                .andExpect(jsonPath("$.maxParticipants").value(groupResponseDto.getMaxParticipants()))
+                .andExpect(jsonPath("$.title").value(groupResponseDto.title))
+                .andExpect(jsonPath("$.description").value(groupResponseDto.description))
+                .andExpect(jsonPath("$.memberId").value(groupResponseDto.memberId))
+                .andExpect(jsonPath("$.maxParticipants").value(groupResponseDto.maxParticipants))
                 .andExpect(jsonPath("$.category").isArray())
                 .andExpect(jsonPath("$.category[0].id").value(1L))
-                .andExpect(jsonPath("$.status").value(Matchers.is("RECRUITING")));
+                .andExpect(jsonPath("$.status").value(Matchers.equalTo("RECRUITING")));
     }
 
     @Test
     @DisplayName("그룹 전체 조회")
-    void t2() throws Exception {
-        ResultActions resultActions = mvc.perform(
+    fun t2() {
+        val resultActions : ResultActions = mvc.perform(
                 get("/groups")
-                        .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print());
 
-        resultActions.andExpect(handler().handlerType(GroupController.class))
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("listGroups"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)));
@@ -100,13 +99,13 @@ public class GroupControllerTest {
 
     @Test
     @DisplayName("그룹 특정 조회")
-    void t3() throws Exception {
-        ResultActions resultActions = mvc.perform(
+    fun t3() {
+        val resultActions : ResultActions = mvc.perform(
                 get("/groups/{id}",1)
-                        .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print());
 
-        resultActions.andExpect(handler().handlerType(GroupController.class))
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("getGroup"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -120,10 +119,10 @@ public class GroupControllerTest {
 
     @Test
     @DisplayName("그룹 수정")
-    void t4() throws Exception {
-        ResultActions resultActions = mvc.perform(
-                put("/groups/{id}",1L)
-                        .cookie(new Cookie("accessToken",cookie))
+    fun t4() {
+        val resultActions : ResultActions = mvc.perform(
+                put("/groups/{id}",78L)
+                        .cookie( Cookie("accessToken",cookie))
                         .content("""
                                 {
                                   "title": "제목2",
@@ -132,13 +131,13 @@ public class GroupControllerTest {
                                   "groupStatus":"RECRUITING"
                                 }
                                 """)
-                        .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print());
 
-        resultActions.andExpect(handler().handlerType(GroupController.class))
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("modifyGroup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.id").value(78L))
                 .andExpect(jsonPath("$.title").value("제목2"))
                 .andExpect(jsonPath("$.description").value("내용3"))
                 .andExpect(jsonPath("$.maxParticipants").value(6))
@@ -147,14 +146,14 @@ public class GroupControllerTest {
 
     @Test
     @DisplayName("그룹 삭제")
-    void t5() throws Exception {
-        ResultActions resultActions = mvc.perform(
-                delete("/groups/{id}",1L)
-                        .cookie(new Cookie("accessToken",cookie))
-                        .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+    fun t5() {
+        val resultActions : ResultActions = mvc.perform(
+                delete("/groups/{id}",78L)
+                        .cookie( Cookie("accessToken",cookie))
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print());
 
-        resultActions.andExpect(handler().handlerType(GroupController.class))
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("deleteGroup"))
                 .andExpect(status().isOk());
     }
