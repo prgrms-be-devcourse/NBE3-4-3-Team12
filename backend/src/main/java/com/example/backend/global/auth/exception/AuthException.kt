@@ -8,14 +8,14 @@ import org.springframework.http.HttpStatus
  * @author 100mihna
  */
 class AuthException(private val authErrorCode: AuthErrorCode) :
-RuntimeException() {
+    RuntimeException() {
 
-	override val message: String
-	get() = authErrorCode.message
+    override val message: String
+        get() = authErrorCode.message
 
-	val status: HttpStatus
-	get() = authErrorCode.httpStatus
+    val status: HttpStatus
+        get() = authErrorCode.httpStatus
 
-	val code: String
-	get() = authErrorCode.code
+    val code: String
+        get() = authErrorCode.code
 }
