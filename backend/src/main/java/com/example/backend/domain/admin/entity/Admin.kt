@@ -1,51 +1,38 @@
 package com.example.backend.domain.admin.entity;
 
-import com.example.backend.global.base.BaseEntity;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.example.backend.global.base.BaseEntity
+import jakarta.persistence.*
+import java.time.LocalDateTime
 
-import java.time.LocalDateTime;
-
-@Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Admin extends BaseEntity {
+class Admin (
+    @Column(unique = true)
+    val adminName: String,
+    val password: String,
+
+    @Enumerated(EnumType.STRING)
+    val role: Role,
+
+    @Column
+    var refreshToken: String? = null,
+
+    @Column
+    var refreshTokenExpiryDate: LocalDateTime? = null
+) : BaseEntity() {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    var id: Long? = null
 
-    @Column(name = "admin_name")
-    private String adminName; //  관리자 아이디
+    constructor(adminName: String, password: String) : this(
+        adminName, password, Role.ADMIN)
 
-    @Column
-    private String password; //  비밀번호 (암호화 저장)
-
-    @Enumerated(EnumType.STRING)
-    private Role role = Role.ADMIN;  // 관리자 권한 (ADMIN)
-
-    @Column(unique = true)
-    private String refreshToken;
-
-    @Column
-    private LocalDateTime refreshTokenExpiryDate;
-
-    public enum  Role {
-        ADMIN  // 관리자 권한
+    fun setRefreshToken(refreshToken: String?, expiryDate: LocalDateTime?) {
+        this.refreshToken = refreshToken
+        this.refreshTokenExpiryDate = expiryDate
     }
+}
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public void setRefreshTokenExpiryDate(LocalDateTime refreshTokenExpiryDate) {
-        this.refreshTokenExpiryDate = refreshTokenExpiryDate;
-    }
-
-    public Admin(String adminName, String password) {
-        this.adminName = adminName;
-        this.password = password;
-    }
+enum  class Role {
+    ADMIN
 }
