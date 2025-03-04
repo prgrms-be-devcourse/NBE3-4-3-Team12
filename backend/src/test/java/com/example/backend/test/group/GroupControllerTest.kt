@@ -5,7 +5,6 @@ import com.example.backend.domain.group.dto.GroupRequestDto;
 import com.example.backend.domain.group.dto.GroupResponseDto;
 import com.example.backend.domain.group.entity.GroupStatus;
 import com.example.backend.domain.group.service.GroupService;
-import com.example.backend.domain.member.entity.Member;
 import com.example.backend.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;
 import org.hamcrest.Matchers;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Optional;
 
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -38,9 +36,6 @@ class GroupControllerTest {
 
     @Autowired
     private lateinit var mvc : MockMvc
-
-    @Autowired
-    private lateinit var memberRepository : MemberRepository
 
     @Value("\${TEST_COOKIE}")
     private lateinit var cookie : String
@@ -61,7 +56,7 @@ class GroupControllerTest {
                                 }
                                 """)
                         .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
-        ).andDo(print());
+        ).andDo(print())
 
         val groupResponseDto : GroupResponseDto = groupService.create(
             GroupRequestDto(
@@ -72,7 +67,7 @@ class GroupControllerTest {
                 GroupStatus.RECRUITING),1L);
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("createGroup"))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk)
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value(groupResponseDto.title))
                 .andExpect(jsonPath("$.description").value(groupResponseDto.description))
@@ -80,7 +75,7 @@ class GroupControllerTest {
                 .andExpect(jsonPath("$.maxParticipants").value(groupResponseDto.maxParticipants))
                 .andExpect(jsonPath("$.category").isArray())
                 .andExpect(jsonPath("$.category[0].id").value(1L))
-                .andExpect(jsonPath("$.status").value(Matchers.equalTo("RECRUITING")));
+                .andExpect(jsonPath("$.status").value(Matchers.equalTo("RECRUITING")))
     }
 
     @Test
@@ -89,12 +84,12 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
                 get("/groups")
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
-        ).andDo(print());
+        ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("listGroups"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)));
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
     }
 
     @Test
@@ -103,18 +98,18 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
                 get("/groups/{id}",1)
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
-        ).andDo(print());
+        ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("getGroup"))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk)
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").isNotEmpty())
                 .andExpect(jsonPath("$.description").isNotEmpty())
                 .andExpect(jsonPath("$.memberId").isNotEmpty())
                 .andExpect(jsonPath("$.maxParticipants").isNotEmpty())
                 .andExpect(jsonPath("$.category").isNotEmpty())
-                .andExpect(jsonPath("$.status").isNotEmpty());
+                .andExpect(jsonPath("$.status").isNotEmpty())
     }
 
     @Test
@@ -132,16 +127,16 @@ class GroupControllerTest {
                                 }
                                 """)
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
-        ).andDo(print());
+        ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("modifyGroup"))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk)
                 .andExpect(jsonPath("$.id").value(78L))
                 .andExpect(jsonPath("$.title").value("제목2"))
                 .andExpect(jsonPath("$.description").value("내용3"))
                 .andExpect(jsonPath("$.maxParticipants").value(6))
-                .andExpect(jsonPath("$.status").value("RECRUITING"));
+                .andExpect(jsonPath("$.status").value("RECRUITING"))
     }
 
     @Test
@@ -151,10 +146,44 @@ class GroupControllerTest {
                 delete("/groups/{id}",78L)
                         .cookie( Cookie("accessToken",cookie))
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
-        ).andDo(print());
+        ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("deleteGroup"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk)
+    }
+
+    @Test
+    @DisplayName("그룹 참가")
+    fun t6() {
+        val resultActions : ResultActions = mvc.perform(
+            post("/groups/join")
+                .content("""
+                    {
+                        "groupId": 78,
+                        "memberId": 1
+                    }
+                """)
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
+            .andExpect(handler().methodName("joinGroup"))
+            .andExpect(status().isOk)
+    }
+
+    @Test
+    @DisplayName("유저가 속한 그룹 조회")
+    fun t7() {
+        val resultActions : ResultActions = mvc.perform(
+            get("/groups/member")
+                .cookie( Cookie("accessToken",cookie))
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
+            .andExpect(handler().methodName("getGroupByMember"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
     }
 }
