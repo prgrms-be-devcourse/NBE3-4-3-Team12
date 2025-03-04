@@ -1,7 +1,7 @@
-package com.example.backend.global.config;
+package com.example.backend.global.config
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.context.annotation.Configuration
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 
 /**
  * jpaAuditingConfig
@@ -10,5 +10,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  */
 @Configuration
 @EnableJpaAuditing
-public class JpaAuditingConfig {
-}
+class JpaAuditingConfig 
