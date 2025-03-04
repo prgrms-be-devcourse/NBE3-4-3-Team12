@@ -1,6 +1,6 @@
-package com.example.backend.domain.category.entity;
+package com.example.backend.domain.category.entity
 
-public enum CategoryType {
+enum class CategoryType {
     EXERCISE,
     STUDY,
     HOBBY

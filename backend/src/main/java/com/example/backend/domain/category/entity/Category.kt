@@ -1,43 +1,26 @@
-package com.example.backend.domain.category.entity;
+package com.example.backend.domain.category.entity
 
-
-import com.example.backend.domain.groupcategory.GroupCategory;
-import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.example.backend.domain.groupcategory.GroupCategory
+import jakarta.persistence.*
+import java.util.ArrayList
 
 @Entity
-@Getter
-@NoArgsConstructor
 @Table(name = "\"categories\"")
-public class Category {
+class Category(
+    @Column var name: String,
 
+    @Enumerated(EnumType.STRING)
+    @Column var categoryType: CategoryType
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    val id: Long? = null
 
-    @Column
-    private String name;
+    @OneToMany(mappedBy = "category", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val groupCategories: MutableList<GroupCategory> = ArrayList()
 
-    @Column
-    @Enumerated(value = EnumType.STRING)
-    private CategoryType categoryType;
-
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GroupCategory> groupCategories = new ArrayList<>();
-
-    @Builder
-    public Category(String name, CategoryType categoryType) {
-        this.name = name;
-        this.categoryType = categoryType;
-    }
-
-    public void modify(String name, CategoryType categoryType) {
-        this.name = name;
-        this.categoryType = categoryType;
+    fun modify(name: String, categoryType: CategoryType) {
+        this.name = name
+        this.categoryType = categoryType
     }
 }
