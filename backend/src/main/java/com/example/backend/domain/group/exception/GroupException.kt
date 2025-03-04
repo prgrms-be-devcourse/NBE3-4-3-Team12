@@ -1,20 +1,11 @@
-package com.example.backend.domain.group.exception;
+package com.example.backend.domain.group.exception
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus
 
-public class GroupException extends RuntimeException{
-    private final GroupErrorCode groupErrorCode;
+class GroupException(private val groupErrorCode: GroupErrorCode) : RuntimeException(groupErrorCode.message) {
+    val status: HttpStatus
+        get() = groupErrorCode.httpStatus
 
-    public GroupException(GroupErrorCode groupErrorCode) {
-        super(groupErrorCode.getMessage());
-        this.groupErrorCode = groupErrorCode;
-    }
-
-    public HttpStatus getStatus() {
-        return groupErrorCode.getHttpStatus();
-    }
-
-    public String getCode() {
-        return groupErrorCode.getCode();
-    }
+    val code: String
+        get() = groupErrorCode.code
 }
