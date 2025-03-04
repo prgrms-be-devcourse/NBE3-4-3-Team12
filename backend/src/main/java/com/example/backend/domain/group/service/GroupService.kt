@@ -1,164 +1,150 @@
 package com.example.backend.domain.group.service;
 
 import com.example.backend.domain.category.entity.Category;
-import com.example.backend.domain.category.repository.CategoryRepository;
-import com.example.backend.domain.group.dto.GroupModifyRequestDto;
-import com.example.backend.domain.group.dto.GroupRequestDto;
+import com.example.backend.domain.category.repository.CategoryRepository
+import com.example.backend.domain.group.dto.GroupModifyRequestDto
+import com.example.backend.domain.group.dto.GroupRequestDto
 import com.example.backend.domain.group.dto.GroupResponseDto;
 import com.example.backend.domain.group.entity.Group;
 import com.example.backend.domain.group.entity.GroupStatus;
 import com.example.backend.domain.group.exception.GroupErrorCode;
 import com.example.backend.domain.group.exception.GroupException;
-import com.example.backend.domain.group.repository.GroupRepository;
+import com.example.backend.domain.group.repository.GroupRepository
 import com.example.backend.domain.groupcategory.GroupCategory;
 import com.example.backend.domain.groupmember.entity.GroupMember;
-import com.example.backend.domain.groupmember.repository.GroupMemberRepository;
+import com.example.backend.domain.groupmember.entity.GroupMemberStatus
+import com.example.backend.domain.groupmember.repository.GroupMemberRepository
 import com.example.backend.domain.member.entity.Member;
-import com.example.backend.domain.member.repository.MemberRepository;
-import com.example.backend.domain.vote.repository.VoteRepository;
-import com.example.backend.domain.voter.repository.VoterRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.domain.vote.repository.VoteRepository
+import com.example.backend.domain.voter.repository.VoterRepository
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
-public class GroupService {
-	private final GroupRepository groupRepository;
-	private final MemberRepository memberRepository;
-	private final GroupMemberRepository groupMemberRepository;
-	private final CategoryRepository categoryRepository;
-	private final VoteRepository voteRepository;
-	private final VoterRepository voterRepository;
-
+class GroupService(
+    val groupRepository : GroupRepository,
+    val memberRepository : MemberRepository,
+    val groupMemberRepository : GroupMemberRepository,
+    val categoryRepository : CategoryRepository,
+    val voteRepository : VoteRepository,
+    val voterRepository : VoterRepository
+) {
     @Transactional
-    public GroupResponseDto create(GroupRequestDto groupRequestDto, Long id){
+    fun create(groupRequestDto : GroupRequestDto, id : Long) : GroupResponseDto{
 
-        Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new GroupException(GroupErrorCode.NOT_FOUND_MEMBER));
+        val member : Member = memberRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND_MEMBER)}
 
-        List<Category> categories = categoryRepository.findAllById(groupRequestDto.getCategoryIds());
-        Group group = new Group(
-                groupRequestDto.getTitle(),
-                groupRequestDto.getDescription(),
+        val categories : MutableList<Category> = categoryRepository.findAllById(groupRequestDto.categoryIds)
+        val group = Group(
+                groupRequestDto.title,
+                groupRequestDto.description,
                 member,
-                groupRequestDto.getStatus(),
-                groupRequestDto.getMaxParticipants()
+                groupRequestDto.status,
+                groupRequestDto.maxParticipants
         );
 
-        List<GroupCategory> groupCategories = categories.stream()
-                        .map(category -> new GroupCategory(group,category))
-                                .collect(Collectors.toList());
+        val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group, category) }.toMutableList()
 
         group.addGroupCategories(groupCategories);
         groupRepository.save(group);
-        GroupMember groupMember = GroupMember.builder()
-                .member(member)
-                .group(group)
-                .build();
+        val groupMember = GroupMember(member, group, GroupMemberStatus.APPLYING)
         groupMemberRepository.save(groupMember);
 
-        return new GroupResponseDto(group);
+        return GroupResponseDto(group);
     }
 
     @Transactional(readOnly = true)
-    public List<GroupResponseDto> findAllGroups() {
-        List<GroupResponseDto> groups = groupRepository.findAll().stream().map(GroupResponseDto::new).collect(Collectors.toList());
+    fun findAllGroups() : MutableList<GroupResponseDto>  {
+        val groups : MutableList<GroupResponseDto> = groupRepository.findAll().map{GroupResponseDto(it)}.toMutableList()
         if (groups.isEmpty()) {
-            throw new GroupException(GroupErrorCode.NOT_FOUND_LIST);
+            throw GroupException(GroupErrorCode.NOT_FOUND_LIST);
         }
-        return groups;
+        return groups
     }
 
     @Transactional(readOnly = true)
-    public GroupResponseDto findGroup(Long id){
-        return groupRepository.findById(id).map(GroupResponseDto::new).orElseThrow(()->new GroupException(GroupErrorCode.NOT_FOUND));
+    fun findGroup(id : Long) : GroupResponseDto{
+        return groupRepository.findById(id).map{GroupResponseDto(it)}.orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
     }
 
 
     @Transactional
-    public void deleteGroup(Long id) {
-        Group group = groupRepository.findById(id).orElseThrow(()-> new GroupException(GroupErrorCode.NOT_FOUND));
-        checkValidity(group.getStatus());
-		if (group.getStatus() == GroupStatus.COMPLETED){
-			group.updateStatus(GroupStatus.DELETED);
+    fun deleteGroup(id : Long) {
+        val group : Group = groupRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
+        checkValidity(group.status)
+		if (group.status == GroupStatus.COMPLETED){
+			group.updateStatus(GroupStatus.DELETED)
 		}
-        group.updateStatus(GroupStatus.DELETED);
+        group.updateStatus(GroupStatus.DELETED)
 
-		List<Long> voteIds = voteRepository.findAllIdByGroupId(id);
+		val voteIds : MutableList<Long> = voteRepository.findAllIdByGroupId(id);
 		voterRepository.deleteByVoteIdIn(voteIds);
 		voteRepository.deleteAllByGroupId(id);
         groupRepository.save(group);
     }
 
     @Transactional
-    public GroupResponseDto modifyGroup(Long id, GroupModifyRequestDto groupModifyRequestDto) {
-        Group group = groupRepository.findById(id).orElseThrow(()-> new GroupException(GroupErrorCode.NOT_FOUND));
-        checkValidity(group.getStatus());
+    fun modifyGroup(id : Long, groupModifyRequestDto : GroupModifyRequestDto) : GroupResponseDto {
+        val group : Group = groupRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
+        checkValidity(group.status);
         group.update(
-                groupModifyRequestDto.getTitle(),
-                groupModifyRequestDto.getDescription(),
-                groupModifyRequestDto.getMaxParticipants(),
-                groupModifyRequestDto.getGroupStatus()
+                groupModifyRequestDto.title,
+                groupModifyRequestDto.description,
+                groupModifyRequestDto.maxParticipants,
+                groupModifyRequestDto.groupStatus
         );
         groupRepository.save(group);
-        return new GroupResponseDto(group);
+        return GroupResponseDto(group);
     }
 
-    public void checkValidity(GroupStatus groupStatus){
-        if (groupStatus == GroupStatus.DELETED){
-            throw new GroupException(GroupErrorCode.ALREADY_DELETED);
-        }
-        if(groupStatus == GroupStatus.COMPLETED) {
-            throw new GroupException(GroupErrorCode.COMPLETED);
-        }
-        if (groupStatus == GroupStatus.VOTING) {
-            throw new GroupException(GroupErrorCode.VOTING);
+    fun checkValidity(groupStatus : GroupStatus){
+        when(groupStatus){
+            GroupStatus.DELETED -> { throw GroupException(GroupErrorCode.ALREADY_DELETED)}
+            GroupStatus.COMPLETED -> { throw GroupException(GroupErrorCode.COMPLETED)}
+            GroupStatus.VOTING -> { throw GroupException(GroupErrorCode.VOTING)}
+            else -> {}
         }
     }
 
     @Transactional
-    public void joinGroup(Long groupId, Long memberId) {
-        Group group = groupRepository.findById(groupId).orElseThrow(()-> new GroupException(GroupErrorCode.NOT_FOUND));
+    fun joinGroup(groupId : Long, memberId : Long) {
+        val group : Group = groupRepository.findById(groupId).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
 
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new GroupException(GroupErrorCode.NOT_FOUND_MEMBER));
+        val member : Member = memberRepository.findById(memberId).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND_MEMBER)}
 
         if (groupMemberRepository.existsByGroupAndMember(group, member)) {
-            throw new GroupException(GroupErrorCode.EXISTED_MEMBER);
+            throw  GroupException(GroupErrorCode.EXISTED_MEMBER)
         }
 
-        long currentMember = groupMemberRepository.countByGroup(group);
-        if (currentMember > group.getMaxParticipants()-1) {
-            throw new GroupException(GroupErrorCode.OVER_MEMBER);
+        val currentMember : Long = groupMemberRepository.countByGroup(group)
+        if (currentMember > group.maxParticipants-1) {
+            throw GroupException(GroupErrorCode.OVER_MEMBER)
         }
 
-        GroupMember groupMember = GroupMember.builder()
-                .group(group)
-                .member(member)
-                .build();
+        val groupMember = GroupMember(member, group)
 
-        groupMemberRepository.save(groupMember);
+        groupMemberRepository.save(groupMember)
     }
 
     @Transactional(readOnly = true)
-    public List<GroupResponseDto> getGroupByMemberId(Long memberId){
-        List<Group> groups = groupRepository.findGroupByMemberId(memberId);
-        return groups.stream().map(GroupResponseDto::new).collect(Collectors.toList());
+    fun getGroupByMemberId(memberId : Long) : MutableList<GroupResponseDto>{
+        val groups : MutableList<Group> = groupRepository.findGroupByMemberId(memberId)
+        return groups.map{GroupResponseDto(it)}.toMutableList()
     }
 
     @Transactional(readOnly = true)
-    public List<GroupResponseDto> findNotDeletedAllGroups() {
-        List<GroupResponseDto> groups = groupRepository.findAll().stream()
-                .filter(group -> group.getStatus() != GroupStatus.DELETED && group.getStatus() != GroupStatus.NOT_RECRUITING)  // "deleted"와 "not recruiting" 상태 제외
-                .map(GroupResponseDto::new)
-                .collect(Collectors.toList());
+    fun findNotDeletedAllGroups() : MutableList<GroupResponseDto> {
+        val groups = groupRepository.findAll()
+            .filter { it.status != GroupStatus.DELETED && it.status != GroupStatus.NOT_RECRUITING }
+            .map { GroupResponseDto(it) }
+            .toMutableList()
+
         if (groups.isEmpty()) {
-            throw new GroupException(GroupErrorCode.NOT_FOUND_LIST);
+            throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
         }
-        return groups;
+        return groups
     }
 }
 
