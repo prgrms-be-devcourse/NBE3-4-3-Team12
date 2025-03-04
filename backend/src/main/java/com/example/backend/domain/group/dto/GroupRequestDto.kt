@@ -1,28 +1,18 @@
-package com.example.backend.domain.group.dto;
+package com.example.backend.domain.group.dto
 
-import com.example.backend.domain.group.entity.GroupStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.example.backend.domain.group.entity.GroupStatus
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
-import java.util.List;
+class GroupRequestDto(
+    @field:NotBlank(message = "타이틀은 필수 항목입니다.")
+    val title: String,
+    @field:NotBlank(message = "설명은 필수 항목입니다.")
+    val description: String,
+    @field:NotNull(message = "인원은 필수 항목입니다.")
+    val maxParticipants: Int,
 
-@Getter
-@AllArgsConstructor
-public class GroupRequestDto {
-
-    @NotBlank(message = "타이틀은 필수 항목입니다.")
-    private String title;
-
-    @NotBlank(message = "설명은 필수 항목입니다.")
-    private String description;
-
-    @NotNull(message = "인원은 필수 항목입니다.")
-    private Integer maxParticipants;
-
-    private List<Long> categoryIds;
-
-    @NotNull
-    private GroupStatus status;
-}
+    val categoryIds: MutableList<Long>,
+    @field:NotNull
+    val status: GroupStatus
+)
