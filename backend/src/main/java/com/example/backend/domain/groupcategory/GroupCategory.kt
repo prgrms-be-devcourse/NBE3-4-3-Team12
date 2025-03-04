@@ -1,30 +1,21 @@
-package com.example.backend.domain.groupcategory;
+package com.example.backend.domain.groupcategory
 
-import com.example.backend.domain.category.entity.Category;
-import com.example.backend.domain.group.entity.Group;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.example.backend.domain.category.entity.Category
+import com.example.backend.domain.group.entity.Group
+import jakarta.persistence.*
 
 @Entity
-@Getter
-@NoArgsConstructor
-public class GroupCategory {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+@Table(name = "group_category")
+class GroupCategory(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
-    private Group group;
+    val group: Group,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
-
-    public GroupCategory(Group group, Category category) {
-        this.group = group;
-        this.category = category;
-    }
+    val category: Category
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null
 }
