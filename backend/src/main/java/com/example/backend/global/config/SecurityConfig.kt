@@ -1,75 +1,54 @@
 package com.example.backend.global.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import com.example.backend.global.auth.jwt.AdminAuthFilter;
-import com.example.backend.global.auth.jwt.MemberAuthFilter;
-
-import lombok.RequiredArgsConstructor;
+import com.example.backend.global.auth.jwt.MemberAuthFilter
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 /**
  * SecurityConfig
  * 시큐리티 관련 설정 클래스
  * @author 100minha
  */
-@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
-
-	private final MemberAuthFilter memberAuthFilter;
-	private final AdminAuthFilter adminAuthFilter;
-	private final CorsConfig corsConfig;
-
+class SecurityConfig(
+	private val memberAuthFilter: MemberAuthFilter,
+	private val adminAuthFilter: MemberAuthFilter,
+	private val corsConfig: CorsConfig
+) {
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
 		http
-				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/h2-console/**")  // H2 콘솔 사용을 위해 CSRF 비활성화
-						.disable()
-				)
-				.headers(headers -> headers
-						.frameOptions(
-								frameOptions -> frameOptions.disable()  // H2 콘솔 화면을 위해 필요
-						)
-				)
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.httpBasic(AbstractHttpConfigurer::disable)
-				.formLogin(AbstractHttpConfigurer::disable)
-				.logout(AbstractHttpConfigurer::disable)
-				.addFilter(corsConfig.corsFilter())
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/h2-console/**").permitAll()  // H2 콘솔 접근 허용
-						.anyRequest().permitAll()
-				)
-				.addFilterBefore(memberAuthFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(adminAuthFilter, UsernamePasswordAuthenticationFilter.class)
-		;
+			.csrf { it.ignoringRequestMatchers("/h2-console/**").disable() }  // H2 콘솔 사용을 위해 CSRF 비활성화
+			.headers { it.frameOptions { frame -> frame.disable() } }  // H2 콘솔 화면을 위해 필요
+			.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+			.httpBasic { it.disable() }
+			.formLogin { it.disable() }
+			.logout { it.disable() }
+			.addFilter(corsConfig.corsFilter())
+			.authorizeHttpRequests {
+				it.requestMatchers("/h2-console/**").permitAll()  // H2 콘솔 접근 허용
+					.anyRequest().permitAll()
+			}
+			.addFilterBefore(memberAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+			.addFilterBefore(adminAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
-		return http.build();
+		return http.build()
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
-		Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
+	fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager =
+		authenticationConfiguration.authenticationManager
 
 	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+	fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }
