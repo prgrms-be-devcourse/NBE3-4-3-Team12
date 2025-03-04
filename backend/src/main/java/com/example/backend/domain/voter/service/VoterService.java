@@ -1,10 +1,5 @@
 package com.example.backend.domain.voter.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
 import com.example.backend.domain.group.entity.Group;
 import com.example.backend.domain.group.repository.GroupRepository;
 import com.example.backend.domain.groupmember.repository.GroupMemberRepository;
@@ -18,9 +13,12 @@ import com.example.backend.domain.voter.entity.Voter;
 import com.example.backend.domain.voter.exception.VoterErrorCode;
 import com.example.backend.domain.voter.exception.VoterException;
 import com.example.backend.domain.voter.repository.VoterRepository;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
