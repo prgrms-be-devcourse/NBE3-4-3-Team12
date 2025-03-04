@@ -1,102 +1,89 @@
 package com.example.backend.global.auth.jwt;
 
-import static com.example.backend.global.auth.exception.AuthErrorCode.*;
-
-import java.io.IOException;
-import java.util.Set;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.example.backend.domain.admin.entity.Admin;
-import com.example.backend.domain.admin.service.AdminGetService;
-import com.example.backend.global.auth.exception.AuthErrorCode;
-import com.example.backend.global.auth.service.CookieService;
-import com.example.backend.global.auth.util.JwtUtil;
-import com.example.backend.global.auth.util.TokenProvider;
-import com.example.backend.global.response.ErrorResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import com.example.backend.domain.admin.service.AdminGetService
+import com.example.backend.global.auth.exception.AuthErrorCode
+import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.auth.util.JwtUtil
+import com.example.backend.global.auth.util.TokenProvider
+import com.example.backend.global.response.ErrorResponse
+import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.servlet.FilterChain
+import jakarta.servlet.ServletException
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.OncePerRequestFilter
+import java.io.IOException
 
 @Component
-@RequiredArgsConstructor
-public class AdminAuthFilter extends OncePerRequestFilter {
+class AdminAuthFilter(
+	private val jwtUtil: JwtUtil,
+	private val tokenProvider: TokenProvider,
+	private val adminGetService: AdminGetService,
+	private val cookieService: CookieService,
+	private val objectMapper: ObjectMapper
+) : OncePerRequestFilter() {
 
-	private final JwtUtil jwtUtil;
-	private final TokenProvider tokenProvider;
-	private final AdminGetService adminGetService;
-	private final CookieService cookieService;
-	private final ObjectMapper objectMapper;
-
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-		throws ServletException, IOException {
+	@Throws(ServletException::class, IOException::class)
+	override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
 		// 요청 헤더에서 JWT 토큰 가져오기
-		String accessToken = this.cookieService.getAccessTokenFromCookie(request);
-		String refreshToken = this.cookieService.getRefreshTokenFromCookie(request);
+		val accessToken = cookieService.getAccessTokenFromCookie(request)
+		val refreshToken = cookieService.getRefreshTokenFromCookie(request)
 
-		// 토큰이 유효하면 SecurityContext 에 인증 정보 저장
-		if (accessToken == null || refreshToken == null || accessToken.isEmpty() || refreshToken.isEmpty()) {
-			handleException(TOKEN_EXPIRED, request, response);
+		// 토큰이 유효하면 SecurityContext에 인증 정보 저장
+		if (accessToken.isNullOrEmpty() || refreshToken.isNullOrEmpty()) {
+			handleException(AuthErrorCode.TOKEN_EXPIRED, request, response)
+			return
 		}
 
 		try {
-			TokenStatus tokenStatus = jwtUtil.validateToken(accessToken);
+			val tokenStatus = jwtUtil.validateToken(accessToken)
 
-			switch (tokenStatus) {
-				case VALID:
-					Authentication authentication = jwtUtil.getAuthentication(accessToken);
-					SecurityContextHolder.getContext().setAuthentication(authentication);
-					chain.doFilter(request, response);
-					return;
-				case EXPIRED:
+			when (tokenStatus) {
+				TokenStatus.VALID -> {
+					val authentication = jwtUtil.getAuthentication(accessToken)
+					SecurityContextHolder.getContext().authentication = authentication
+					chain.doFilter(request, response)
+				}
+				TokenStatus.EXPIRED -> {
 					if (jwtUtil.isRefreshTokenValid(refreshToken)) {
-						Admin admin = this.adminGetService.getAdminByRefreshToken(refreshToken);
-						String newAccessToken = this.tokenProvider.generateToken(admin);
-						this.cookieService.addAccessTokenToCookie(newAccessToken, response);
-						Authentication newAuthentication = jwtUtil.getAuthentication(newAccessToken);
-						SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-						chain.doFilter(request, response);
-						return;
+						val admin = adminGetService.getAdminByRefreshToken(refreshToken)
+						val newAccessToken = tokenProvider.generateToken(admin)
+						cookieService.addAccessTokenToCookie(newAccessToken, response)
+						val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
+						SecurityContextHolder.getContext().authentication = newAuthentication
+						chain.doFilter(request, response)
+					} else {
+						handleException(AuthErrorCode.TOKEN_REISSUE_FAILED, request, response)
 					}
-					handleException(TOKEN_REISSUE_FAILED, request, response);
-				case MALFORMED:
-					handleException(AUTHORIZATION_FAILED, request, response);
-				case INVALID:
-					handleException(INVALID_TOKEN, request, response);
+				}
+				TokenStatus.MALFORMED -> handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
+				TokenStatus.INVALID -> handleException(AuthErrorCode.INVALID_TOKEN, request, response)
 			}
-		} catch (Exception e) {
-			handleException(AUTHORIZATION_FAILED, request, response);
+		} catch (e: Exception) {
+			handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
 		}
-
 	}
 
-	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) {
-		String path = request.getRequestURI();
-		String method = request.getMethod();
-		return !((path.startsWith("/admin") && Set.of("GET", "DELETE").contains(method)) ||
-			(path.startsWith("/categories") && Set.of("POST", "PUT", "DELETE").contains(method)));
+	override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+		val path = request.requestURI
+		val method = request.method
+		return !((path.startsWith("/admin") && method in setOf("GET", "DELETE")) ||
+				(path.startsWith("/categories") && method in setOf("POST", "PUT", "DELETE")))
 	}
 
-	private void handleException(AuthErrorCode ex, HttpServletRequest request, HttpServletResponse response) throws
-		IOException {
-		this.cookieService.clearTokenFromCookie(response);
-		response.setStatus(ex.getHttpStatus().value());
-		response.setContentType("application/json;charset=UTF-8");
+	@Throws(IOException::class)
+	private fun handleException(ex: AuthErrorCode, request: HttpServletRequest, response: HttpServletResponse) {
+		cookieService.clearTokenFromCookie(response)
+		response.status = ex.httpStatus.value()
+		response.contentType = "application/json;charset=UTF-8"
 
-		ErrorResponse errorResponse = ErrorResponse.of(
-			ex.getMessage(),
-			ex.getCode(),
-			request.getRequestURI()
-		);
-		objectMapper.writeValue(response.getWriter(), errorResponse);
+		val errorResponse = ErrorResponse.of(
+			ex.message,
+			ex.code,
+			request.requestURI
+		)
+		objectMapper.writeValue(response.writer, errorResponse)
 	}
 }
