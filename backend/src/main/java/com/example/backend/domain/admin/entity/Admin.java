@@ -43,4 +43,9 @@ public class Admin extends BaseEntity {
     public void setRefreshTokenExpiryDate(LocalDateTime refreshTokenExpiryDate) {
         this.refreshTokenExpiryDate = refreshTokenExpiryDate;
     }
+
+    public Admin(String adminName, String password) {
+        this.adminName = adminName;
+        this.password = password;
+    }
 }
