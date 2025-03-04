@@ -1,57 +1,56 @@
-package com.example.backend.domain.category.controller;
+package com.example.backend.domain.category.controller
 
+import com.example.backend.domain.category.dto.CategoryRequestDto
+import com.example.backend.domain.category.dto.CategoryResponseDto
+import com.example.backend.domain.category.service.CategoryService
+import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
-import com.example.backend.domain.category.dto.CategoryRequestDto;
-import com.example.backend.domain.category.dto.CategoryResponseDto;
-import com.example.backend.domain.category.service.CategoryService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@Slf4j
 @RestController
 @RequestMapping("/categories")
-@RequiredArgsConstructor
-public class CategoryController {
-
-    private final CategoryService categoryService;
+class CategoryController(
+    private val categoryService: CategoryService
+) {
+    private val log: Logger = LoggerFactory.getLogger(CategoryController::class.java)
 
     @PostMapping
-    public ResponseEntity<CategoryResponseDto>createGroup(@RequestBody @Valid CategoryRequestDto categoryRequestDto) {
-        log.info("New category creation requested");
-        CategoryResponseDto response = categoryService.create(categoryRequestDto);
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(200));
+    fun createGroup(@RequestBody @Valid categoryRequestDto: CategoryRequestDto): ResponseEntity<CategoryResponseDto> {
+        log.info("New category creation requested")
+        val response = categoryService.create(categoryRequestDto)
+        return ResponseEntity.ok(response)
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponseDto>modifyCategory(@PathVariable("id") Long id, @RequestBody @Valid CategoryRequestDto categoryRequestDto) {
-        log.info("Modify category requested");
-        CategoryResponseDto response = categoryService.modify(id,categoryRequestDto);
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(200));
+    fun modifyCategory(
+        @PathVariable id: Long,
+        @RequestBody @Valid categoryRequestDto: CategoryRequestDto
+    ): ResponseEntity<CategoryResponseDto> {
+        log.info("Modify category requested")
+        val response = categoryService.modify(id, categoryRequestDto)
+        return ResponseEntity.ok(response)
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponseDto>> listCategories() {
-        log.info("List categories requested");
-        List<CategoryResponseDto> categoryList = categoryService.getAllCategories();
-        return new ResponseEntity<>(categoryList, HttpStatusCode.valueOf(200));
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponseDto> getCategory(@PathVariable("id") Long id) {
-        log.info("Get category requested");
-        CategoryResponseDto response = categoryService.getCategory(id);
-        return new ResponseEntity<>(response, HttpStatusCode.valueOf(200));
+    fun listCategories(): ResponseEntity<List<CategoryResponseDto>> {
+        log.info("List categories requested")
+        val categoryList = categoryService.getAllCategories()
+        return ResponseEntity.ok(categoryList)
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<CategoryResponseDto> deleteCategory(@PathVariable("id") Long id) {
-        log.info("Delete category requested");
-        categoryService.delete(id);
-        return new ResponseEntity<>(null, HttpStatusCode.valueOf(200));
+    @GetMapping("/{id}")
+    fun getCategory(@PathVariable id: Long): ResponseEntity<CategoryResponseDto> {
+        log.info("Get category requested")
+        val response = categoryService.getCategory(id)
+        return ResponseEntity.ok(response)
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteCategory(@PathVariable id: Long): ResponseEntity<Void> {
+        log.info("Delete category requested")
+        categoryService.delete(id)
+        return ResponseEntity.ok().build()
     }
 }
