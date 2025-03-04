@@ -1,20 +1,29 @@
 package com.example.backend.test.group;
 
+import com.example.backend.domain.category.entity.Category
+import com.example.backend.domain.category.entity.CategoryType
+import com.example.backend.domain.category.repository.CategoryRepository
 import com.example.backend.domain.group.controller.GroupController;
 import com.example.backend.domain.group.dto.GroupRequestDto;
 import com.example.backend.domain.group.dto.GroupResponseDto;
+import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.group.entity.GroupStatus;
+import com.example.backend.domain.group.repository.GroupRepository
 import com.example.backend.domain.group.service.GroupService;
+import com.example.backend.domain.groupcategory.GroupCategory
+import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository;
+import com.example.backend.global.util.TestTokenProvider
 import jakarta.servlet.http.Cookie;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +38,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 class GroupControllerTest {
 
     @Autowired
@@ -37,15 +47,42 @@ class GroupControllerTest {
     @Autowired
     private lateinit var mvc : MockMvc
 
-    @Value("\${TEST_COOKIE}")
-    private lateinit var cookie : String
+    companion object {
+        private lateinit var accessToken: String
+
+        @JvmStatic
+        @BeforeAll
+        fun setUp(@Autowired tokenProvider: TestTokenProvider,
+                  @Autowired memberRepository: MemberRepository,
+                  @Autowired groupRepository: GroupRepository,
+                  @Autowired categoryRepository: CategoryRepository
+        ) {
+            val member = Member(1L, "testUser", "test@test.com")
+            memberRepository.save(member)
+
+            accessToken = tokenProvider.generateMemberAccessToken(
+                member.id, member.nickname, member.email
+            )
+            val category = Category("testCategory", CategoryType.STUDY)
+            categoryRepository.save(category)
+            val categories : MutableList<Category> = categoryRepository.findAll()
+
+            for (i in 0 until 5){
+                val group = Group("title$i","description$i",member,GroupStatus.RECRUITING,5)
+                val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group,category) }.toMutableList()
+                group.addGroupCategories(groupCategories)
+                groupRepository.save(group)
+
+            }
+        }
+    }
 
     @Test
     @DisplayName("그룹 생성")
     fun t1() {
         val resultActions : ResultActions = mvc.perform(
                 post("/groups")
-                        .cookie(Cookie("accessToken",cookie))
+                        .cookie(Cookie("accessToken",accessToken))
                         .content("""
                                 {
                                   "title": "제목1",
@@ -96,14 +133,14 @@ class GroupControllerTest {
     @DisplayName("그룹 특정 조회")
     fun t3() {
         val resultActions : ResultActions = mvc.perform(
-                get("/groups/{id}",1)
+                get("/groups/{id}",1L)
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("getGroup"))
                 .andExpect(status().isOk)
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").isNotEmpty())
                 .andExpect(jsonPath("$.description").isNotEmpty())
                 .andExpect(jsonPath("$.memberId").isNotEmpty())
@@ -116,8 +153,8 @@ class GroupControllerTest {
     @DisplayName("그룹 수정")
     fun t4() {
         val resultActions : ResultActions = mvc.perform(
-                put("/groups/{id}",78L)
-                        .cookie( Cookie("accessToken",cookie))
+                put("/groups/{id}",1L)
+                        .cookie( Cookie("accessToken",accessToken))
                         .content("""
                                 {
                                   "title": "제목2",
@@ -132,7 +169,7 @@ class GroupControllerTest {
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
                 .andExpect(handler().methodName("modifyGroup"))
                 .andExpect(status().isOk)
-                .andExpect(jsonPath("$.id").value(78L))
+                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("제목2"))
                 .andExpect(jsonPath("$.description").value("내용3"))
                 .andExpect(jsonPath("$.maxParticipants").value(6))
@@ -143,8 +180,8 @@ class GroupControllerTest {
     @DisplayName("그룹 삭제")
     fun t5() {
         val resultActions : ResultActions = mvc.perform(
-                delete("/groups/{id}",78L)
-                        .cookie( Cookie("accessToken",cookie))
+                delete("/groups/{id}",1L)
+                        .cookie( Cookie("accessToken",accessToken))
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
@@ -158,9 +195,10 @@ class GroupControllerTest {
     fun t6() {
         val resultActions : ResultActions = mvc.perform(
             post("/groups/join")
+                .cookie(Cookie("accessToken",accessToken))
                 .content("""
                     {
-                        "groupId": 78,
+                        "groupId": 1,
                         "memberId": 1
                     }
                 """)
@@ -177,7 +215,7 @@ class GroupControllerTest {
     fun t7() {
         val resultActions : ResultActions = mvc.perform(
             get("/groups/member")
-                .cookie( Cookie("accessToken",cookie))
+                .cookie( Cookie("accessToken",accessToken))
                 .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
