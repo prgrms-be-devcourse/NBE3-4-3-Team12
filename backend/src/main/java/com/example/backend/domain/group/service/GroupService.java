@@ -1,11 +1,5 @@
 package com.example.backend.domain.group.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.example.backend.domain.category.entity.Category;
 import com.example.backend.domain.category.repository.CategoryRepository;
 import com.example.backend.domain.group.dto.GroupModifyRequestDto;
@@ -23,8 +17,12 @@ import com.example.backend.domain.member.entity.Member;
 import com.example.backend.domain.member.repository.MemberRepository;
 import com.example.backend.domain.vote.repository.VoteRepository;
 import com.example.backend.domain.voter.repository.VoterRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -43,13 +41,13 @@ public class GroupService {
                 .orElseThrow(() -> new GroupException(GroupErrorCode.NOT_FOUND_MEMBER));
 
         List<Category> categories = categoryRepository.findAllById(groupRequestDto.getCategoryIds());
-        Group group = Group.builder()
-                .title(groupRequestDto.getTitle())
-                .description(groupRequestDto.getDescription())
-                .member(member)
-                .status(GroupStatus.RECRUITING)
-                .maxParticipants(groupRequestDto.getMaxParticipants())
-                .build();
+        Group group = new Group(
+                groupRequestDto.getTitle(),
+                groupRequestDto.getDescription(),
+                member,
+                groupRequestDto.getStatus(),
+                groupRequestDto.getMaxParticipants()
+        );
 
         List<GroupCategory> groupCategories = categories.stream()
                         .map(category -> new GroupCategory(group,category))

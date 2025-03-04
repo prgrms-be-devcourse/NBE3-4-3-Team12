@@ -4,66 +4,48 @@ import com.example.backend.domain.groupcategory.GroupCategory;
 import com.example.backend.domain.member.entity.Member;
 import com.example.backend.global.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Getter
-@NoArgsConstructor
 @Table(name = "\"groups\"")
-public class Group extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+class Group(
+    @Column
+    var title : String,
 
     @Column
-    private String title;
-
-    @Column
-    private String description;
+    var description : String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    var member : Member,
 
     @Column
     @Enumerated(value = EnumType.STRING)
-    private GroupStatus status = GroupStatus.RECRUITING;
+    var status : GroupStatus = GroupStatus.RECRUITING,
 
     @Column
-    private Integer maxParticipants;
+    var maxParticipants : Int,
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GroupCategory> groupCategories = new ArrayList<>();
+    ) : BaseEntity() {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id : Long = 0
 
-    @Builder
-    public Group(String title, String description, Member member, GroupStatus status, Integer maxParticipants, List<GroupCategory> groupCategories) {
-        this.title = title;
-        this.description = description;
-        this.member = member;
-        this.status = status;
-        this.maxParticipants = maxParticipants;
-        this.groupCategories = groupCategories;
-    }
+    @OneToMany(mappedBy = "group", cascade = [CascadeType.ALL], orphanRemoval = true)
+    lateinit var groupCategories : MutableList<GroupCategory>
 
-    public void update(String title, String description, Integer maxParticipants, GroupStatus status) {
+    fun update(title : String, description : String, maxParticipants : Int, status : GroupStatus) {
         this.title = title;
         this.description = description;
         this.maxParticipants = maxParticipants;
         this.status = status;
     }
 
-    public void updateStatus(GroupStatus status) {
+    fun updateStatus(status : GroupStatus) {
         this.status = status;
     }
 
-    public void addGroupCategories(List<GroupCategory> groupCategories) {
+    fun addGroupCategories(groupCategories : MutableList<GroupCategory>) {
         this.groupCategories = groupCategories;
     }
 }
