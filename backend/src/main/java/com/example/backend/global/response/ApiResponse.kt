@@ -1,40 +1,29 @@
-package com.example.backend.global.response;
+package com.example.backend.global.response
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.AccessLevel
+import lombok.Builder
+import lombok.Getter
 
 /**
  * ApiResponse
  * 공통 응답 객체
  * @author 100minha
  */
-@Getter
-@Builder(access = AccessLevel.PRIVATE)
-public class ApiResponse<T> {
+data class ApiResponse<T>(
+    val message: String,
+    val data: T? = null
+) {
+    companion object {
+        fun <T> of(message: String): ApiResponse<T> {
+            return ApiResponse(message = message)
+        }
 
-	private String message;  // 응답 메시지
-	private T data;          // 응답 데이터
+        fun <T> of(data: T): ApiResponse<T> {
+            return ApiResponse(message = "Success", data = data)
+        }
 
-	// 메시지만 포함하는 응답
-	public static <T> ApiResponse<T> of(String message) {
-		return ApiResponse.<T>builder()
-			.message(message)
-			.build();
-	}
-
-	// 데이터만 포함하는 응답
-	public static <T> ApiResponse<T> of(T data) {
-		return ApiResponse.<T>builder()
-			.data(data)
-			.build();
-	}
-
-	// 메시지와 데이터를 포함하는 응답
-	public static <T> ApiResponse<T> of(String message, T data) {
-		return ApiResponse.<T>builder()
-			.message(message)
-			.data(data)
-			.build();
-	}
+        fun <T> of(message: String, data: T): ApiResponse<T> {
+            return ApiResponse(message = message, data = data)
+        }
+    }
 }
