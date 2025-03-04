@@ -1,12 +1,10 @@
-package com.example.backend.domain.group.repository;
+package com.example.backend.domain.group.repository
 
-import com.example.backend.domain.group.entity.Group;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import com.example.backend.domain.group.entity.Group
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 @Repository
-public interface GroupRepository extends JpaRepository<Group,Long> {
-    List<Group> findGroupByMemberId(Long memberId);
+interface GroupRepository : JpaRepository<Group, Long> {
+    fun findGroupByMemberId(memberId: Long): MutableList<Group>
 }
