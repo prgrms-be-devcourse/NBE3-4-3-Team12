@@ -2,19 +2,15 @@ package com.example.backend.domain.admin.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class AdminException extends RuntimeException {
-        private final AdminErrorCode adminErrorCode;
-        
-    public AdminException(AdminErrorCode adminErrorCode) {
-        super(adminErrorCode.getMessage());
-        this.adminErrorCode = adminErrorCode;
+class AdminException(
+    private val adminErrorCode: AdminErrorCode
+) : RuntimeException(adminErrorCode.message) {
+
+    fun getStatus(): HttpStatus {
+        return adminErrorCode.httpStatus
     }
 
-    public HttpStatus getStatus() {
-        return adminErrorCode.getHttpStatus();
-    }
-
-    public String getCode() {
-        return adminErrorCode.getCode();
+    fun getCode(): String {
+        return adminErrorCode.code
     }
 }
