@@ -1,21 +1,10 @@
-package com.example.backend.domain.category.exception;
+package com.example.backend.domain.category.exception
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus
 
-public class CategoryException extends RuntimeException{
+class CategoryException(val categoryErrorCode: CategoryErrorCode) : RuntimeException(categoryErrorCode.message) {
 
-    private final CategoryErrorCode categoryErrorCode;
+    fun getStatus(): HttpStatus = categoryErrorCode.httpStatus
 
-    public CategoryException(CategoryErrorCode categoryErrorCode) {
-        super(categoryErrorCode.getMessage());
-        this.categoryErrorCode = categoryErrorCode;
-    }
-
-    public HttpStatus getStatus() {
-        return categoryErrorCode.getHttpStatus();
-    }
-
-    public String getCode() {
-        return categoryErrorCode.getCode();
-    }
+    fun getCode(): String = categoryErrorCode.code
 }
