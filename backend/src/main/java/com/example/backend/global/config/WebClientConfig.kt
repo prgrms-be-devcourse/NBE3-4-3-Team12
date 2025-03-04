@@ -1,8 +1,8 @@
-package com.example.backend.global.config;
+package com.example.backend.global.config
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.function.client.WebClient
 
 /**
  * WebClientConfig
@@ -10,10 +10,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author 100minha
  */
 @Configuration
-public class WebClientConfig {
-
-	@Bean
-	public WebClient webClient() {
-		return WebClient.builder().build();
-	}
+class WebClientConfig {
+    @Bean
+    fun webClient(): WebClient {
+        return WebClient.builder().build()
+    }
 }
