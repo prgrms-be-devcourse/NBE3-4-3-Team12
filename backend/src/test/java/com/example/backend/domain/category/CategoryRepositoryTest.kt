@@ -1,67 +1,63 @@
-package com.example.backend.domain.category;
+package com.example.backend.domain.category
 
-import com.example.backend.domain.category.entity.Category;
-import com.example.backend.domain.category.entity.CategoryType;
-import com.example.backend.domain.category.repository.CategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-
-import java.util.Optional;
-
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import com.example.backend.domain.category.entity.Category
+import com.example.backend.domain.category.entity.CategoryType
+import com.example.backend.domain.category.repository.CategoryRepository
+import org.hibernate.validator.internal.util.Contracts.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.data.repository.findByIdOrNull
 
 @DataJpaTest
-public class CategoryRepositoryTest {
-
+class CategoryRepositoryTest {
     @Autowired
-    private CategoryRepository categoryRepository;
+    lateinit var categoryRepository: CategoryRepository
 
-    private Category category;
+    private lateinit var category: Category
 
 
     @BeforeEach
-    void setUp(){
-        category = Category.builder()
-                .name("Category1")
-                .categoryType(CategoryType.EXERCISE)
-                .build();
+    fun setUp() {
+        category = Category(
+            name = "Category1",
+            categoryType = CategoryType.EXERCISE
+        )
     }
+
     @Test
     @DisplayName("카테고리 저장 테스트")
-    void saveTest(){
-        Category savedCategory = categoryRepository.save(category);
+    fun saveTest() {
+        val savedCategory = categoryRepository.save(category)
 
-        assertNotNull(savedCategory.getId());
-        assertEquals(category.getName(),savedCategory.getName());
-        assertEquals(category.getCategoryType(),savedCategory.getCategoryType());
+        assertNotNull(savedCategory.id)
+        assertEquals(category.name, savedCategory.name)
+        assertEquals(category.categoryType, savedCategory.categoryType)
     }
+
     @Test
     @DisplayName("카테고리 ID로 조회 테스트")
-    void findByIdTest() {
-        Category savedCategory = categoryRepository.save(category);
+    fun findByIdTest() {
+        val savedCategory = categoryRepository.save(category)
+        val foundCategory = categoryRepository.findByIdOrNull(savedCategory.id)
 
-        Optional<Category> foundCategory = categoryRepository.findById(savedCategory.getId());
-
-        assertTrue(foundCategory.isPresent());
-        assertEquals(savedCategory.getName(), foundCategory.get().getName());
-        assertEquals(savedCategory.getCategoryType(), foundCategory.get().getCategoryType());
+        assertNotNull(foundCategory)
+        assertEquals(savedCategory.name, foundCategory?.name)
+        assertEquals(savedCategory.categoryType, foundCategory?.categoryType)
     }
 
     @Test
     @DisplayName("카테고리 삭제 테스트")
-    void deleteTest() {
-        Category savedCategory = categoryRepository.save(category);
+    fun deleteTest() {
+        val savedCategory = categoryRepository.save(category)
 
-        categoryRepository.delete(savedCategory);
+        categoryRepository.delete(savedCategory)
 
-        Optional<Category> deletedCategory = categoryRepository.findById(savedCategory.getId());
-        assertTrue(deletedCategory.isEmpty());
+        val deletedCategory = categoryRepository.findByIdOrNull(savedCategory.id)
+        assertTrue(deletedCategory == null)
     }
-
 }
