@@ -7,7 +7,9 @@ class CategoryException(val categoryErrorCode: CategoryErrorCode) : RuntimeExcep
     override val message: String
         get() = categoryErrorCode.message
 
-    fun getStatus(): HttpStatus = categoryErrorCode.httpStatus
+    val status: HttpStatus
+        get() = categoryErrorCode.httpStatus
 
-    fun getCode(): String = categoryErrorCode.code
+    val code: String
+        get() = categoryErrorCode.code
 }
