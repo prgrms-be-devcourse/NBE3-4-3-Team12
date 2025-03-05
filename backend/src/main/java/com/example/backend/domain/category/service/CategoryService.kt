@@ -6,7 +6,6 @@ import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.exception.CategoryErrorCode
 import com.example.backend.domain.category.exception.CategoryException
 import com.example.backend.domain.category.repository.CategoryRepository
-import jakarta.validation.Valid
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,7 +25,7 @@ class CategoryService(
     }
 
     @Transactional
-    fun modify(id: Long, @Valid categoryRequestDto: CategoryRequestDto): CategoryResponseDto {
+    fun modify(id: Long, categoryRequestDto: CategoryRequestDto): CategoryResponseDto {
         val category = categoryRepository.findById(id)
             .orElseThrow { CategoryException(CategoryErrorCode.NOT_FOUND) }
 

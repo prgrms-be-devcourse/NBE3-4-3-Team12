@@ -5,7 +5,7 @@ import jakarta.persistence.*
 import java.util.ArrayList
 
 @Entity
-@Table(name = "\"categories\"")
+@Table(name = "categories")
 class Category(
     @Column var name: String,
 
@@ -14,7 +14,7 @@ class Category(
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null
+    val id: Long = 0L
 
     @OneToMany(mappedBy = "category", cascade = [CascadeType.ALL], orphanRemoval = true)
     val groupCategories: MutableList<GroupCategory> = ArrayList()

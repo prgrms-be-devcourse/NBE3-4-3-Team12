@@ -17,7 +17,7 @@ class CategoryController(
     private val log: Logger = LoggerFactory.getLogger(CategoryController::class.java)
 
     @PostMapping
-    fun createGroup(@RequestBody @Valid categoryRequestDto: CategoryRequestDto): ResponseEntity<CategoryResponseDto> {
+    fun createCategory(@RequestBody @Valid categoryRequestDto: CategoryRequestDto): ResponseEntity<CategoryResponseDto> {
         log.info("New category creation requested")
         val response = categoryService.create(categoryRequestDto)
         return ResponseEntity.ok(response)
