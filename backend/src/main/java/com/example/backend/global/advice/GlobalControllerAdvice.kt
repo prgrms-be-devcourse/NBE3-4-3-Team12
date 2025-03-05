@@ -85,7 +85,7 @@ class GlobalControllerAdvice {
     @ExceptionHandler(GroupException::class)
     fun handleGroupException(ex: GroupException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message!!, ex.code, request.requestURI))
+            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(GlobalException::class)
@@ -97,13 +97,13 @@ class GlobalControllerAdvice {
     @ExceptionHandler(AdminException::class)
     fun handleAdminException(ex: AdminException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message!!, ex.code, request.requestURI))
+            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(CategoryException::class)
     fun handleCategoryException(ex: CategoryException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message!!, ex.code, request.requestURI))
+            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(MemberException::class)
