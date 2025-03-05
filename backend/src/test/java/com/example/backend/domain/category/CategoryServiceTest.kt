@@ -1,142 +1,188 @@
-package com.example.backend.domain.category;
+package com.example.backend.domain.category.service
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
-import com.example.backend.domain.category.dto.CategoryRequestDto;
-import com.example.backend.domain.category.dto.CategoryResponseDto;
-import com.example.backend.domain.category.entity.Category;
-import com.example.backend.domain.category.entity.CategoryType;
-import com.example.backend.domain.category.exception.CategoryException;
-import com.example.backend.domain.category.repository.CategoryRepository;
-import com.example.backend.domain.category.service.CategoryService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import com.example.backend.domain.category.dto.CategoryRequestDto
+import com.example.backend.domain.category.entity.Category
+import com.example.backend.domain.category.entity.CategoryType
+import com.example.backend.domain.category.exception.CategoryException
+import com.example.backend.domain.category.repository.CategoryRepository
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.junit.jupiter.MockitoExtension
+import java.util.*
 
-@ExtendWith(MockitoExtension.class)
-public class CategoryServiceTest {
+@ExtendWith(MockitoExtension::class)
+class CategoryServiceTest {
 
     @Mock
-    private CategoryRepository categoryRepository;
+    private lateinit var categoryRepository: CategoryRepository
 
     @InjectMocks
-    private CategoryService categoryService;
+    private lateinit var categoryService: CategoryService
 
-    private CategoryRequestDto categoryRequestDto;
-    private Category category1;
-    private Category category2;
+    private lateinit var categoryRequestDto: CategoryRequestDto
+    private lateinit var category1: Category
+    private lateinit var category2: Category
 
     @BeforeEach
-    void setUp() {
-        categoryRequestDto = new CategoryRequestDto(
-                CategoryType.STUDY,
-                "category1"
-        );
-        category1 = new Category("Category 1", CategoryType.EXERCISE);
-        category2 = new Category("Category 2", CategoryType.HOBBY);
+    fun setUp() {
+        categoryRequestDto = CategoryRequestDto(
+            name = "Test Category",
+            type = CategoryType.EXERCISE
+        )
+
+        category1 = Category(name = "Category 1", categoryType = CategoryType.EXERCISE)
+        category2 = Category(name = "Category 2", categoryType = CategoryType.HOBBY)
+
+        Mockito.lenient().`when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
+        Mockito.lenient().`when`(categoryRepository.findById(category2.id)).thenReturn(Optional.of(category2))
+        Mockito.lenient().`when`(categoryRepository.findAll()).thenReturn(listOf(category1, category2))
     }
 
     @Test
     @DisplayName("카테고리 생성 테스트")
-    void createCategoryTest() {
-        Category category = Category.builder()
-                .name(categoryRequestDto.getName())
-                .categoryType(categoryRequestDto.getType())
-                .build();
+    fun createCategoryTest() {
+        val category = Category(
+            name = categoryRequestDto.name,
+            categoryType = categoryRequestDto.type
+        )
 
-        when(categoryRepository.save(any(Category.class))).thenReturn(category);
+        `when`(categoryRepository.save(Mockito.any(Category::class.java))).thenReturn(category)
 
-        CategoryResponseDto response = categoryService.create(categoryRequestDto);
+        val response = categoryService.create(categoryRequestDto)
 
-        assertThat(response).isNotNull();
-        assertThat(response.getName()).isEqualTo(category.getName());
-        assertThat(response.getType()).isEqualTo(category.getCategoryType());
+        assertThat(response).isNotNull
+        assertThat(response.name).isEqualTo(category.name)
+        assertThat(response.type).isEqualTo(category.categoryType)
 
-        verify(categoryRepository, times(1)).save(any(Category.class));
+        Mockito.verify(categoryRepository, Mockito.times(1)).save(Mockito.any(Category::class.java))
     }
 
     @Test
     @DisplayName("카테고리 수정 테스트")
-    void modifyCategoryTest() {
-        when(categoryRepository.findById(category1.getId())).thenReturn(Optional.of(category1));
+    fun modifyCategoryTest() {
+        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
 
-        CategoryResponseDto response = categoryService.modify(category1.getId(), categoryRequestDto);
+        val updatedCategoryDto = CategoryRequestDto(name = "Updated Category", type = CategoryType.STUDY)
 
-        assertThat(response).isNotNull();
-        assertThat(response.getName()).isEqualTo(categoryRequestDto.getName());
-        assertThat(response.getType()).isEqualTo(categoryRequestDto.getType());
+        val response = categoryService.modify(category1.id, updatedCategoryDto)
 
-        verify(categoryRepository, times(1)).findById(category1.getId());
+        assertThat(response).isNotNull
+        assertThat(response.name).isEqualTo(updatedCategoryDto.name)
+        assertThat(response.type).isEqualTo(updatedCategoryDto.type)
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).save(Mockito.any(Category::class.java))
     }
 
     @Test
     @DisplayName("카테고리 수정시 잘못된 id로 실패 테스트")
-    void modifyFailureExceptionTest() {
-        Long wrongId = 100L;
+    fun modifyFailureExceptionTest() {
+        val wrongId = 100L
 
-        assertThatThrownBy(() -> categoryService.modify(wrongId, categoryRequestDto))
-                .isInstanceOf(CategoryException.class)
-                .hasMessageContaining("해당 카테고리는 존재하지 않습니다.");
+        Mockito.`when`(categoryRepository.findById(wrongId)).thenReturn(Optional.empty())
 
-        verify(categoryRepository, times(1)).findById(wrongId);
+        val exception = org.junit.jupiter.api.assertThrows<CategoryException> {
+            categoryService.modify(wrongId, categoryRequestDto)
+        }
 
+        assertThat(exception).isNotNull
+        assertThat(exception.message).contains("해당 카테고리는 존재하지 않습니다.")
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(wrongId)
     }
 
     @Test
     @DisplayName("카테고리 전체 조회 성공 테스트")
-    void listCategoryTest() {
-        List<Category> categories = Arrays.asList(category1, category2);
-        when(categoryRepository.findAll()).thenReturn(categories);
+    fun listCategoryTest() {
+        val categories = listOf(category1, category2)
+        `when`(categoryRepository.findAll()).thenReturn(categories)
 
-        List<CategoryResponseDto> response = categoryService.getAllCategories();
+        val response = categoryService.getAllCategories()
 
-        assertThat(response).hasSize(2);
-        assertThat(response.get(0).getName()).isEqualTo(category1.getName());
-        assertThat(response.get(1).getName()).isEqualTo(category2.getName());
-        verify(categoryRepository, times(1)).findAll();
+        assertThat(response).hasSize(2)
+        assertThat(response[0].name).isEqualTo(category1.name)
+        assertThat(response[1].name).isEqualTo(category2.name)
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findAll()
     }
 
     @Test
-    @DisplayName("카테고리가 하나도 존재하지 않을때 조회 실패 테스트")
-    void emptyListCategoryTest(){
-        when(categoryRepository.findAll()).thenReturn(Collections.emptyList());
+    @DisplayName("카테고리 전체 조회 실패 테스트 - 카테고리가 없을 때")
+    fun emptyListCategoryTest() {
+        `when`(categoryRepository.findAll()).thenReturn(emptyList())
 
-        assertThatThrownBy(() -> categoryService.getAllCategories())
-                .isInstanceOf(CategoryException.class)  // 예외 타입 확인
-                .hasMessageContaining("카테고리 목록이 존재하지 않습니다.");
+        val exception = org.junit.jupiter.api.assertThrows<CategoryException> {
+            categoryService.getAllCategories()
+        }
 
-        verify(categoryRepository, times(1)).findAll();
+        assertThat(exception).isNotNull
+        assertThat(exception.message).contains("카테고리 목록이 존재하지 않습니다.")
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findAll()
     }
 
     @Test
     @DisplayName("카테고리 삭제 성공 테스트")
-    void deleteCategoryTest() {
-        when(categoryRepository.findById(category1.getId())).thenReturn(Optional.of(category1));
+    fun deleteCategoryTest() {
+        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
 
-        categoryService.delete(category1.getId());
+        categoryService.delete(category1.id)
 
-        verify(categoryRepository, times(1)).findById(category1.getId());
-        verify(categoryRepository, times(1)).delete(category1);
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).delete(category1)
     }
 
     @Test
     @DisplayName("카테고리 삭제 시 잘못된 id로 실패 테스트")
-    void deleteCategoryFailureTest(){
-        when(categoryRepository.findById(category1.getId())).thenReturn(Optional.empty());
+    fun deleteCategoryFailureTest() {
+        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.empty())
 
-        assertThatThrownBy(() -> categoryService.delete(category1.getId()))
-                .isInstanceOf(CategoryException.class)
-                .hasMessageContaining("해당 카테고리는 존재하지 않습니다.");
-        verify(categoryRepository, times(1)).findById(category1.getId());
-        verify(categoryRepository, times(0)).delete(any(Category.class));
+        val exception = org.junit.jupiter.api.assertThrows<CategoryException> {
+            categoryService.delete(category1.id)
+        }
+
+        assertThat(exception).isNotNull
+        assertThat(exception.message).contains("해당 카테고리는 존재하지 않습니다.")
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(0)).delete(Mockito.any(Category::class.java))
     }
 
+    @Test
+    @DisplayName("카테고리 조회 성공 테스트")
+    fun getCategoryTest() {
+        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
+
+        val response = categoryService.getCategory(category1.id)
+
+        assertThat(response).isNotNull
+        assertThat(response.name).isEqualTo(category1.name)
+        assertThat(response.type).isEqualTo(category1.categoryType)
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+    }
+
+    @Test
+    @DisplayName("카테고리 조회 실패 테스트 - 잘못된 id로 조회 시 실패")
+    fun getCategoryFailureTest() {
+        val wrongId = 100L
+
+        Mockito.`when`(categoryRepository.findById(wrongId)).thenReturn(Optional.empty())
+
+        val exception = org.junit.jupiter.api.assertThrows<CategoryException> {
+            categoryService.getCategory(wrongId)
+        }
+
+        assertThat(exception).isNotNull
+        assertThat(exception.message).contains("해당 카테고리는 존재하지 않습니다.")
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(wrongId)
+    }
 }
