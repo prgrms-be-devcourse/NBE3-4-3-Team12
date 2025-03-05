@@ -4,7 +4,7 @@ import com.example.backend.domain.group.entity.GroupStatus
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
-class GroupRequestDto(
+data class GroupRequestDto(
     @field:NotBlank(message = "타이틀은 필수 항목입니다.")
     val title: String,
     @field:NotBlank(message = "설명은 필수 항목입니다.")

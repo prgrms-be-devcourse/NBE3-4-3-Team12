@@ -8,8 +8,6 @@ import lombok.Getter
 import lombok.NoArgsConstructor
 
 @Entity
-@Getter
-@NoArgsConstructor
 class GroupMember : BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

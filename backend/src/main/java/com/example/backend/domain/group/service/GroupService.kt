@@ -37,7 +37,7 @@ class GroupService(
         val member : Member = memberRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND_MEMBER)}
 
         val categories : MutableList<Category> = categoryRepository.findAllById(groupRequestDto.categoryIds)
-        val group = Group(
+        val group : Group = Group(
                 groupRequestDto.title,
                 groupRequestDto.description,
                 member,
@@ -56,8 +56,8 @@ class GroupService(
     }
 
     @Transactional(readOnly = true)
-    fun findAllGroups() : MutableList<GroupResponseDto>  {
-        val groups : MutableList<GroupResponseDto> = groupRepository.findAll().map{GroupResponseDto(it)}.toMutableList()
+    fun findAllGroups() : List<GroupResponseDto>  {
+        val groups : List<GroupResponseDto> = groupRepository.findAll().map{GroupResponseDto(it)}
         if (groups.isEmpty()) {
             throw GroupException(GroupErrorCode.NOT_FOUND_LIST);
         }
@@ -79,7 +79,7 @@ class GroupService(
 		}
         group.updateStatus(GroupStatus.DELETED)
 
-		val voteIds : MutableList<Long> = voteRepository.findAllIdByGroupId(id);
+		val voteIds : List<Long> = voteRepository.findAllIdByGroupId(id);
 		voterRepository.deleteByVoteIdIn(voteIds);
 		voteRepository.deleteAllByGroupId(id);
         groupRepository.save(group);
@@ -135,11 +135,10 @@ class GroupService(
     }
 
     @Transactional(readOnly = true)
-    fun findNotDeletedAllGroups() : MutableList<GroupResponseDto> {
+    fun findNotDeletedAllGroups() : List<GroupResponseDto> {
         val groups = groupRepository.findAll()
             .filter { it.status != GroupStatus.DELETED && it.status != GroupStatus.NOT_RECRUITING }
             .map { GroupResponseDto(it) }
-            .toMutableList()
 
         if (groups.isEmpty()) {
             throw GroupException(GroupErrorCode.NOT_FOUND_LIST)

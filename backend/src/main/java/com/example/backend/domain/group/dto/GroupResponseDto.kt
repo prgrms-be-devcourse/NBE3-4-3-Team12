@@ -5,7 +5,7 @@ import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.group.entity.GroupStatus
 import java.time.LocalDateTime
 
-class GroupResponseDto(
+data class GroupResponseDto(
     val id : Long,
     val title : String,
     val description : String,
