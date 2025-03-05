@@ -1,134 +1,136 @@
-package com.example.backend.domain.admin;
+package com.example.backend.domain.admin
 
-import com.example.backend.domain.admin.entity.Admin;
-import com.example.backend.domain.admin.repository.AdminRepository;
-import com.example.backend.domain.group.entity.Group;
-import com.example.backend.domain.group.entity.GroupStatus;
-import com.example.backend.domain.group.repository.GroupRepository;
-import com.example.backend.domain.member.entity.Member;
-import com.example.backend.domain.member.repository.MemberRepository;
-import jakarta.servlet.http.Cookie;
-import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-
-import static com.example.backend.domain.group.entity.GroupStatus.DELETED;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.example.backend.domain.admin.entity.Admin
+import com.example.backend.domain.admin.repository.AdminRepository
+import com.example.backend.domain.group.entity.Group
+import com.example.backend.domain.group.entity.GroupStatus
+import com.example.backend.domain.group.repository.GroupRepository
+import com.example.backend.domain.member.entity.Member
+import com.example.backend.domain.member.repository.MemberRepository
+import jakarta.servlet.http.Cookie
+import org.hibernate.validator.internal.util.Contracts.assertNotNull
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-public class AdminControllerTest {
+class AdminControllerTest @Autowired constructor(
+        private val mockMvc: MockMvc,
+        private val groupRepository: GroupRepository,
+        private val memberRepository: MemberRepository
+) {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private fun loginAndGetResponse(): ResultActions {
+        val loginRequestJson = """
+            {
+                "adminName": "admin",
+                "password": "1234"
+            }
+        """.trimIndent()
 
-    @Autowired
-    private GroupRepository groupRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    private ResultActions loginAndGetResponse() throws Exception {
-        String loginRequestJson = """
-                {
-                    "adminName": "admin",
-                    "password": "1234"
-                }
-                """;
-
-        ResultActions loginResponse = mockMvc.perform(post("/admin/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginRequestJson));
-
-        return loginResponse;
+        return mockMvc.perform(
+                post("/admin/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginRequestJson)
+        )
     }
 
-    private Long createGroupResponse() throws Exception {
-        Member member = new Member(1L, "testUser", "test@test.com");
-        this.memberRepository.save(member);
+    private fun createGroupResponse(): Long {
+        val member = Member(1L, "testUser", "test@test.com")
+        memberRepository.save(member)
 
-        Group group = new Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10);
-
-        Group group1 = groupRepository.save(group);
-        return group1.getId();
+        val group = Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10)
+        return groupRepository.save(group).id
     }
 
-    @BeforeAll
-    static void setUp(@Autowired AdminRepository adminRepository) {
-        Admin admin = new Admin("admin", "$2a$12$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO");
-        adminRepository.save(admin);
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setUp(@Autowired adminRepository: AdminRepository) {
+            val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+            adminRepository.save(admin)
+        }
     }
 
     @Test
     @DisplayName("로그인 성공 테스트")
-    void loginSuccessTest() throws Exception {
-        ResultActions loginResponse = loginAndGetResponse();
+    fun loginSuccessTest() {
+        val loginResponse = loginAndGetResponse()
 
         loginResponse
-                .andExpect(status().isOk())
-                // 쿠키 검증으로 변경
-                .andExpect(cookie().exists("accessToken")) // accessToken 쿠키 존재 여부 확인
-                .andExpect(cookie().exists("refreshToken")) // refreshToken 쿠키 존재 여부 확인
-                .andExpect(cookie().httpOnly("accessToken", true)) // JavaScript 접근 불가
-                .andExpect(cookie().httpOnly("refreshToken", true)) // JavaScript 접근 불가
-                .andExpect(cookie().secure("accessToken", true)) // HTTPS에서만 전송
-                .andExpect(cookie().secure("refreshToken", true)) // HTTPS에서만 전송
-                .andReturn();
+                .andExpect(status().isOk)
+                .andExpect(cookie().exists("accessToken"))
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().httpOnly("accessToken", true))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(cookie().secure("accessToken", true))
+                .andExpect(cookie().secure("refreshToken", true))
+                .andReturn()
     }
 
     @Test
     @DisplayName("로그아웃 성공 테스트")
-    void logoutSuccessTest() throws Exception {
-        ResultActions loginResponse = loginAndGetResponse();
+    fun logoutSuccessTest() {
+        val loginResponse = loginAndGetResponse()
 
-        loginResponse.andExpect(status().isOk());
+        loginResponse.andExpect(status().isOk)
 
-        String accessToken = loginResponse.andReturn().getResponse().getCookie("accessToken").getValue();
-        String refreshToken = loginResponse.andReturn().getResponse().getCookie("refreshToken").getValue();
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
 
-        ResultActions logoutResponse = mockMvc.perform(post("/admin/logout")
-                .cookie(new Cookie("accessToken", accessToken))
-                .cookie(new Cookie("refreshToken", refreshToken)));
+        assertNotNull(accessToken)
+        assertNotNull(refreshToken)
+
+        val logoutResponse = mockMvc.perform(
+                post("/admin/logout")
+                        .cookie(Cookie("accessToken", accessToken))
+                        .cookie(Cookie("refreshToken", refreshToken))
+        )
 
         logoutResponse
-                .andExpect(status().isOk())
+                .andExpect(status().isOk)
                 .andExpect(cookie().value("accessToken", ""))
-                .andExpect(cookie().value("refreshToken", ""));
+                .andExpect(cookie().value("refreshToken", ""))
     }
 
     @Test
     @DisplayName("관리자 그룹 삭제 테스트")
-    void DeleteAdmin() throws Exception {
-        Long groupId = createGroupResponse();
+    fun deleteAdminTest() {
+        val groupId = createGroupResponse()
 
-        ResultActions loginResponse = loginAndGetResponse();
-        loginResponse.andExpect(status().isOk());
+        val loginResponse = loginAndGetResponse()
+        loginResponse.andExpect(status().isOk)
 
-        String accessToken = loginResponse.andReturn().getResponse().getCookie("accessToken").getValue();
-        String refreshToken = loginResponse.andReturn().getResponse().getCookie("refreshToken").getValue();
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
 
-        ResultActions deleteGroupResponse = mockMvc.perform(delete("/admin/group/" + groupId)
-                .cookie(new Cookie("accessToken", accessToken))
-                .cookie(new Cookie("refreshToken", refreshToken)));
+        assertNotNull(accessToken)
+        assertNotNull(refreshToken)
 
-        deleteGroupResponse
-                .andExpect(status().isNoContent());
+        val deleteGroupResponse = mockMvc.perform(
+                delete("/admin/group/$groupId")
+                        .cookie(Cookie("accessToken", accessToken))
+                        .cookie(Cookie("refreshToken", refreshToken))
+        )
 
-        Group group = this.groupRepository.findById(groupId).orElseThrow();
-        assertThat(group.getStatus()).isEqualTo(DELETED);
+        deleteGroupResponse.andExpect(status().isNoContent)
+
+        val group = groupRepository.findById(groupId).orElseThrow()
+        assert(group.status == GroupStatus.DELETED)
     }
 }
