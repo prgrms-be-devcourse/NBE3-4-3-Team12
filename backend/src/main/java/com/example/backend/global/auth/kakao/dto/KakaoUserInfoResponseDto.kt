@@ -1,7 +1,7 @@
-package com.example.backend.global.auth.kakao.dto;
+package com.example.backend.global.auth.kakao.dto
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * KakaoUserInfoResponseDto
@@ -9,17 +9,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author 100minha
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record KakaoUserInfoResponseDto(@JsonProperty("id") Long id,
-									   @JsonProperty("properties") Properties properties,
-									   @JsonProperty("kakao_account") KakaoAccount kakaoAccount) {
-	public record Properties(
-		@JsonProperty("nickname") String nickname,
-		@JsonProperty("profile_image") String profileImage
-	) {
-	}
+data class KakaoUserInfoResponseDto(
+	@JsonProperty("id")
+    val id: Long,
+	@JsonProperty("properties")
+    val properties: Properties,
+	@JsonProperty("kakao_account")
+    val kakaoAccount: KakaoAccount
+) {
 
-	public record KakaoAccount(
-		@JsonProperty("email") String email
-	) {
-	}
+    data class Properties(
+        @JsonProperty("nickname")
+        val nickname: String,
+        @JsonProperty("profile_image")
+        val profileImage: String
+    )
+
+    data class KakaoAccount(
+        @JsonProperty("email")
+        val email: String
+    )
 }
