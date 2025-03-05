@@ -75,7 +75,7 @@ class MemberService(
         member.modify(memberModifyDto)
         // 사용자 정보 수정 후 수정된 정보로 액세스 토큰 재발급
         val reissuedAccessToken = tokenProvider.generateMemberAccessToken(
-            member.id, member.nickname, member.email
+            member.id!!, member.nickname, member.email
         )
 
         cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
