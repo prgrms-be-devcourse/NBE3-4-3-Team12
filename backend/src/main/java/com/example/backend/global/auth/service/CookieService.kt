@@ -1,13 +1,10 @@
-package com.example.backend.global.auth.service;
+package com.example.backend.global.auth.service
 
-import org.springframework.stereotype.Service;
-
-import com.example.backend.global.auth.util.CookieUtil;
-import com.example.backend.global.auth.util.JwtUtil;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import com.example.backend.global.auth.util.CookieUtil
+import com.example.backend.global.auth.util.JwtUtil
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.stereotype.Service
 
 /**
  * CookieService
@@ -15,32 +12,35 @@ import lombok.RequiredArgsConstructor;
  * @author 100mi
  */
 @Service
-@RequiredArgsConstructor
-public class CookieService {
+class CookieService(
+    private val cookieUtil: CookieUtil,
+    private val jwtUtil: JwtUtil
+) {
 
-	private final CookieUtil cookieUtil;
-	private final JwtUtil jwtUtil;
+    fun addAccessTokenToCookie(accessToken: String, response: HttpServletResponse) {
+        cookieUtil.addTokenToCookie(
+            "accessToken", accessToken,
+            jwtUtil.getAccessTokenExpirationTime(), response
+        )
+    }
 
-	public void addAccessTokenToCookie(String accessToken, HttpServletResponse response) {
-		cookieUtil.addTokenToCookie("accessToken", accessToken,
-			jwtUtil.getAccessTokenExpirationTime(), response);
-	}
+    fun addRefreshTokenToCookie(refreshToken: String, response: HttpServletResponse) {
+        cookieUtil.addTokenToCookie(
+            "refreshToken", refreshToken,
+            jwtUtil.getRefreshTokenExpirationTime(), response
+        )
+    }
 
-	public void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
-		cookieUtil.addTokenToCookie("refreshToken", refreshToken,
-			jwtUtil.getRefreshTokenExpirationTime(), response);
-	}
+    fun getAccessTokenFromCookie(request: HttpServletRequest): String? {
+        return cookieUtil.getTokenFromCookie("accessToken", request)
+    }
 
-	public String getAccessTokenFromCookie(HttpServletRequest request) {
-		return cookieUtil.getTokenFromCookie("accessToken", request);
-	}
+    fun getRefreshTokenFromCookie(request: HttpServletRequest): String? {
+        return cookieUtil.getTokenFromCookie("refreshToken", request)
+    }
 
-	public String getRefreshTokenFromCookie(HttpServletRequest request) {
-		return cookieUtil.getTokenFromCookie("refreshToken", request);
-	}
-
-	public void clearTokenFromCookie(HttpServletResponse response) {
-		cookieUtil.addTokenToCookie("accessToken", null, 0, response);
-		cookieUtil.addTokenToCookie("refreshToken", null, 0, response);
-	}
+    fun clearTokenFromCookie(response: HttpServletResponse) {
+        cookieUtil.addTokenToCookie("accessToken", "", 0, response)
+        cookieUtil.addTokenToCookie("refreshToken", "", 0, response)
+    }
 }
