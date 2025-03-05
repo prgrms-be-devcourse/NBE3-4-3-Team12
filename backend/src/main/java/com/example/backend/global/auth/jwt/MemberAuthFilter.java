@@ -1,6 +1,7 @@
 package com.example.backend.global.auth.jwt;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -104,10 +105,8 @@ public class MemberAuthFilter extends OncePerRequestFilter {
 		String method = request.getMethod();
 
 		return !(
-			(method.equals("GET") && path.equals("/groups/member")) ||
-				(method.equals("POST") && path.startsWith("/groups")) ||
-				(method.equals("PUT") && path.startsWith("/groups")) ||
-				(method.equals("DELETE") && path.startsWith("/groups")) ||
+			(path.equals("/groups/member")) && method.equals("GET") ||
+				(path.startsWith("/groups")) && Set.of("POST", "PUT", "DELETE").contains(method) ||
 				path.startsWith("/members") ||
 				path.startsWith("/votes") ||
 				path.startsWith("/voters") ||
