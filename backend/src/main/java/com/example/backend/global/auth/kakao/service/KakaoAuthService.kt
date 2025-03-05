@@ -87,12 +87,13 @@ class KakaoAuthService(
 
     @Transactional
     fun login(kakaoId: Long, kakaoTokenDto: KakaoTokenResponseDto): LoginResponseDto {
+
         val member = memberService.findByKakaoId(kakaoId)
         member.updateAccessToken(kakaoTokenDto.accessToken)
-        member.updateRefreshToken(kakaoTokenDto.refreshToken)
+        member.updateRefreshToken(kakaoTokenDto.refreshToken!!)
 
         val accessToken = tokenProvider.generateMemberAccessToken(
-            member.id, member.nickname, member.email
+            member.id!!, member.nickname, member.email
         )
 
         return LoginResponseDto(member.nickname, accessToken, kakaoTokenDto.refreshToken)
