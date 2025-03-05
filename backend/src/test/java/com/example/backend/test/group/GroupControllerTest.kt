@@ -3,37 +3,37 @@ package com.example.backend.test.group;
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
-import com.example.backend.domain.group.controller.GroupController;
-import com.example.backend.domain.group.dto.GroupRequestDto;
-import com.example.backend.domain.group.dto.GroupResponseDto;
+import com.example.backend.domain.group.controller.GroupController
+import com.example.backend.domain.group.dto.GroupRequestDto
+import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.domain.group.entity.Group
-import com.example.backend.domain.group.entity.GroupStatus;
+import com.example.backend.domain.group.entity.GroupStatus
 import com.example.backend.domain.group.repository.GroupRepository
-import com.example.backend.domain.group.service.GroupService;
+import com.example.backend.domain.group.service.GroupService
 import com.example.backend.domain.groupcategory.GroupCategory
 import com.example.backend.domain.member.entity.Member
-import com.example.backend.domain.member.repository.MemberRepository;
+import com.example.backend.domain.member.repository.MemberRepository
 import com.example.backend.global.util.TestTokenProvider
-import jakarta.servlet.http.Cookie;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import jakarta.servlet.http.Cookie
+import org.hamcrest.Matchers
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.transaction.annotation.Transactional
+import java.nio.charset.StandardCharsets
+import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,37 +43,46 @@ class GroupControllerTest {
 
     @Autowired
     private lateinit var groupService : GroupService
+    @Autowired
+    private lateinit var tokenProvider: TestTokenProvider
+    @Autowired
+    private lateinit var memberRepository: MemberRepository
+    @Autowired
+    private lateinit var groupRepository: GroupRepository
+    @Autowired
+    private lateinit var categoryRepository: CategoryRepository
 
     @Autowired
     private lateinit var mvc : MockMvc
+    @PersistenceContext
+    private lateinit var em: EntityManager
 
-    companion object {
-        private lateinit var accessToken: String
+    private lateinit var accessToken: String
 
-        @JvmStatic
-        @BeforeAll
-        fun setUp(@Autowired tokenProvider: TestTokenProvider,
-                  @Autowired memberRepository: MemberRepository,
-                  @Autowired groupRepository: GroupRepository,
-                  @Autowired categoryRepository: CategoryRepository
-        ) {
-            val member = Member(1L, "testUser", "test@test.com")
-            memberRepository.save(member)
+    @BeforeEach
+    fun setUp() {
 
-            accessToken = tokenProvider.generateMemberAccessToken(
-                member.id, member.nickname, member.email
-            )
-            val category = Category("testCategory", CategoryType.STUDY)
-            categoryRepository.save(category)
-            val categories : MutableList<Category> = categoryRepository.findAll()
+        memberRepository.deleteAll()
+        groupRepository.deleteAll()
+        em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
+        em.createNativeQuery("ALTER TABLE \"groups\" ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
-            for (i in 0 until 5){
-                val group = Group("title$i","description$i",member,GroupStatus.RECRUITING,5)
-                val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group,category) }.toMutableList()
-                group.addGroupCategories(groupCategories)
-                groupRepository.save(group)
+        val member = Member(1L, "testUser", "test@test.com")
+        memberRepository.save(member)
 
-            }
+        accessToken = tokenProvider.generateMemberAccessToken(
+            member.id!!, member.nickname, member.email
+        )
+        val category = Category("testCategory", CategoryType.STUDY)
+        categoryRepository.save(category)
+        val categories : MutableList<Category> = categoryRepository.findAll()
+
+        for (i in 0 until 5){
+            val group = Group("title$i","description$i",member,GroupStatus.RECRUITING,5)
+            val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group,category) }.toMutableList()
+            group.addGroupCategories(groupCategories)
+            groupRepository.save(group)
+
         }
     }
 
