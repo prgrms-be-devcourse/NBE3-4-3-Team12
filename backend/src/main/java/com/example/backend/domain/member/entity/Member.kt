@@ -27,9 +27,9 @@ class Member(
     companion object {
         fun of(kakaoUserInfoDto: KakaoUserInfoResponseDto): Member {
             return Member(
-                kakaoId = kakaoUserInfoDto.id(),
-                nickname = kakaoUserInfoDto.properties().nickname(),
-                email = kakaoUserInfoDto.kakaoAccount().email()
+                kakaoId = kakaoUserInfoDto.id,
+                nickname = kakaoUserInfoDto.properties.nickname,
+                email = kakaoUserInfoDto.kakaoAccount.email
             )
         }
     }
