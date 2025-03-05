@@ -1,16 +1,13 @@
-package com.example.backend.global.auth.kakao.dto;
+package com.example.backend.global.auth.kakao.dto
 
-import lombok.Builder;
+import lombok.Builder
 
 /**
- * LoginResponse
- * <p></p>
+ * LoginResponseDto
  * @author 100minha
  */
-@Builder
-public record LoginResponseDto(
-	String nickname,
-	String accessToken,
-	String refreshToken
-) {
-}
+data class LoginResponseDto(
+	val nickname: String,
+	val accessToken: String,
+	val refreshToken: String
+)
