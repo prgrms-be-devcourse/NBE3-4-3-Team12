@@ -20,7 +20,7 @@ class TokenProvider(
 			.claim("role", admin.role)  // 역할 (권한 정보)
 			.setIssuedAt(Date())  // 토큰 발급 시간
 			.setExpiration(Date(System.currentTimeMillis() + jwtUtil.getAccessTokenExpirationTime()))  // 만료시간
-			.signWith(jwtUtil.getKey())  // 서명 알고리즘 및 키
+			.signWith(jwtUtil.key)  // 서명 알고리즘 및 키
 			.compact()
 	}
 
@@ -31,7 +31,7 @@ class TokenProvider(
 			.claim("email", email)
 			.setIssuedAt(Date())  // 토큰 발급 시간
 			.setExpiration(Date(System.currentTimeMillis() + jwtUtil.getAccessTokenExpirationTime()))  // 만료시간
-			.signWith(jwtUtil.getKey(), SignatureAlgorithm.HS256)  // 서명 알고리즘 및 키
+			.signWith(jwtUtil.key, SignatureAlgorithm.HS256)  // 서명 알고리즘 및 키
 			.compact()
 	}
 
