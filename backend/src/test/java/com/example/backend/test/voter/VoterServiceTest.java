@@ -13,7 +13,6 @@ import com.example.backend.domain.voter.exception.VoterErrorCode;
 import com.example.backend.domain.voter.exception.VoterException;
 import com.example.backend.domain.voter.repository.VoterRepository;
 import com.example.backend.domain.voter.service.VoterService;
-import com.example.backend.global.auth.model.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,9 +51,6 @@ class VoterServiceTest {
 	@Mock
 	private GroupMemberRepository groupMemberRepository;
 
-	@Mock
-	private CustomUserDetails customUserDetails;
-
 	private final Long groupId = 1L;
 	private final Long voteId = 1L;
 	private final Long memberId = 1L;
@@ -77,8 +73,6 @@ class VoterServiceTest {
 
 		voterId = new Voter.VoterId(memberId, voteId);
 		voter = new Voter(voterId, member, vote);
-
-		lenient().when(customUserDetails.getUserId()).thenReturn(memberId);
 	}
 
 	@Test
@@ -91,7 +85,7 @@ class VoterServiceTest {
 		when(voterRepository.existsById(voterId)).thenReturn(false);
 		when(voterRepository.save(any(Voter.class))).thenReturn(voter);
 
-		Voter result = voterService.addVoter(groupId, voteId, customUserDetails.getUserId());
+		Voter result = voterService.addVoter(groupId, voteId, memberId);
 
 		assertThat(result).isNotNull();
 		assertThat(result.getId()).isEqualTo(voterId);
@@ -107,9 +101,9 @@ class VoterServiceTest {
 		when(groupMemberRepository.existsByGroupAndMember(group, member)).thenReturn(true);
 		when(voterRepository.existsById(voterId)).thenReturn(true);
 
-		assertThatThrownBy(() -> voterService.addVoter(groupId, voteId, customUserDetails.getUserId()))
-			.isInstanceOf(VoterException.class)
-			.hasMessageContaining(VoterErrorCode.ALREADY_VOTED.getMessage());
+		assertThatThrownBy(() -> voterService.addVoter(groupId, voteId, memberId))
+				.isInstanceOf(VoterException.class)
+				.hasMessageContaining(VoterErrorCode.ALREADY_VOTED.getMessage());
 
 	}
 
@@ -135,7 +129,7 @@ class VoterServiceTest {
 		when(voterRepository.existsById(voterId)).thenReturn(true);
 		doNothing().when(voterRepository).deleteById(voterId);
 
-		voterService.removeVoter(groupId, voteId, customUserDetails.getUserId());
+		voterService.removeVoter(groupId, voteId, memberId);
 		verify(voterRepository, times(1)).deleteById(voterId);
 	}
 
@@ -148,8 +142,8 @@ class VoterServiceTest {
 		when(groupMemberRepository.existsByGroupAndMember(group, member)).thenReturn(true);
 		when(voterRepository.existsById(voterId)).thenReturn(false);
 
-		assertThatThrownBy(() -> voterService.removeVoter(groupId, voteId, customUserDetails.getUserId()))
-			.isInstanceOf(VoterException.class)
-			.hasMessageContaining(VoterErrorCode.NOT_VOTED.getMessage());
+		assertThatThrownBy(() -> voterService.removeVoter(groupId, voteId, memberId))
+				.isInstanceOf(VoterException.class)
+				.hasMessageContaining(VoterErrorCode.NOT_VOTED.getMessage());
 	}
 }
