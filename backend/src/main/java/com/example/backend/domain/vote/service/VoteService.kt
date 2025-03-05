@@ -67,7 +67,7 @@ class VoteService(
     }
 
     @Transactional
-    fun modifyVote(groupId: Long, voteId: Long, @Valid requestDto: VoteRequestDto): VoteResponseDto {
+    fun modifyVote(groupId: Long, voteId: Long, requestDto: VoteRequestDto): VoteResponseDto {
         // 존재 확인만 함
         voteRepository.findByIdAndGroupId(voteId, groupId)
             .orElseThrow { EntityNotFoundException("Vote not found") }
