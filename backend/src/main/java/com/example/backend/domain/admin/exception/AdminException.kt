@@ -6,11 +6,12 @@ class AdminException(
     private val adminErrorCode: AdminErrorCode
 ) : RuntimeException(adminErrorCode.message) {
 
-    fun getStatus(): HttpStatus {
-        return adminErrorCode.httpStatus
-    }
+    override val message: String
+        get() = adminErrorCode.message
 
-    fun getCode(): String {
-        return adminErrorCode.code
-    }
+    val status: HttpStatus
+        get() = adminErrorCode.httpStatus
+
+    val code: String
+        get() = adminErrorCode.code
 }
