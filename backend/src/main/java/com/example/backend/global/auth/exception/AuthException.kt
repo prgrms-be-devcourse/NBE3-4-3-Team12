@@ -1,25 +1,21 @@
-package com.example.backend.global.auth.exception;
+package com.example.backend.global.auth.exception
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus
 
 /**
  * AuthException
- * <p></p>
- * @author 100mina
+ * 인증 예외 처리를 위한 커스텀 예외 클래스
+ * @author 100mihna
  */
-public class AuthException extends RuntimeException {
-	private final AuthErrorCode authErrorCode;
+class AuthException(private val authErrorCode: AuthErrorCode) :
+RuntimeException() {
 
-	public AuthException(AuthErrorCode authErrorCode) {
-		super(authErrorCode.getMessage());
-		this.authErrorCode = authErrorCode;
-	}
+	override val message: String
+	get() = authErrorCode.message
 
-	public HttpStatus getStatus() {
-		return authErrorCode.getHttpStatus();
-	}
+	val status: HttpStatus
+	get() = authErrorCode.httpStatus
 
-	public String getCode() {
-		return authErrorCode.getCode();
-	}
+	val code: String
+	get() = authErrorCode.code
 }
