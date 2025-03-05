@@ -26,7 +26,7 @@ data class GroupResponseDto(
         maxParticipants = group.maxParticipants,
         status = group.status,
         category = group.groupCategories.map { CategoryResponseDto(it.category) },
-        createdAt = group.createdAt,
-        modifiedAt = group.modifiedAt
+        createdAt = group.createdAt!!,
+        modifiedAt = group.modifiedAt!!
     )
 }
