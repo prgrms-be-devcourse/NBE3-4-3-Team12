@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Transactional
 public class AdminControllerTest {
 
@@ -59,15 +61,10 @@ public class AdminControllerTest {
         Member member = new Member(1L, "testUser", "test@test.com");
         this.memberRepository.save(member);
 
-        Group group = Group.builder()
-                .title("운동모임")
-                .description("운동 하는 사람들의 모임")
-                .member(member)
-                .status(GroupStatus.RECRUITING)
-                .maxParticipants(10)
-                .build();
-        groupRepository.save(group);
-        return group.getId();
+        Group group = new Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10);
+
+        Group group1 = groupRepository.save(group);
+        return group1.getId();
     }
 
     @BeforeAll
@@ -129,7 +126,7 @@ public class AdminControllerTest {
                 .cookie(new Cookie("refreshToken", refreshToken)));
 
         deleteGroupResponse
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         Group group = this.groupRepository.findById(groupId).orElseThrow();
         assertThat(group.getStatus()).isEqualTo(DELETED);
