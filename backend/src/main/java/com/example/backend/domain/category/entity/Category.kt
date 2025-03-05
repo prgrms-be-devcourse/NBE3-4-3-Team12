@@ -14,7 +14,7 @@ class Category(
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0L
+    val id: Long? = null
 
     @OneToMany(mappedBy = "category", cascade = [CascadeType.ALL], orphanRemoval = true)
     val groupCategories: MutableList<GroupCategory> = ArrayList()
