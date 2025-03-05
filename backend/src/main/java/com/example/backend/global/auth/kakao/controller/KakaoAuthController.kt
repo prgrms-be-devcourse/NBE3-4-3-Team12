@@ -1,29 +1,27 @@
-package com.example.backend.global.auth.kakao.controller;
+package com.example.backend.global.auth.kakao.controller
 
-import java.net.URI;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.backend.global.auth.kakao.dto.KakaoTokenResponseDto;
-import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto;
-import com.example.backend.global.auth.kakao.dto.LoginResponseDto;
-import com.example.backend.global.auth.kakao.service.KakaoAuthService;
-import com.example.backend.global.auth.model.CustomUserDetails;
-import com.example.backend.global.auth.service.CookieService;
-import com.example.backend.global.response.ApiResponse;
-import com.example.backend.global.response.ErrorResponse;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import com.example.backend.global.auth.kakao.dto.KakaoTokenResponseDto
+import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto
+import com.example.backend.global.auth.kakao.service.KakaoAuthService
+import com.example.backend.global.auth.model.CustomUserDetails
+import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.response.ApiResponse
+import com.example.backend.global.response.ApiResponse.Companion.of
+import com.example.backend.global.response.ErrorResponse
+import com.example.backend.global.response.ErrorResponse.Companion.of
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import lombok.extern.slf4j.Slf4j
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import java.net.URI
 
 /**
  * KakaoAuthController
@@ -33,116 +31,106 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequestMapping("/auth/kakao")
 @RestController
-public class KakaoAuthController {
+class KakaoAuthController(
+    private val kakaoAuthService: KakaoAuthService,
+    private val cookieService: CookieService,
+    @Value("\${CLIENT_BASE_URL}") private val clientBaseUrl: String
+) {
+    /**
+     * 카카오 로그인 페이지로 리다이렉트 및
+     * 인가 토큰 발급 요청하는 메서드
+     * @return
+     */
+    @GetMapping("/login")
+    fun kakaoLogin(): ResponseEntity<Any> {
+        val headers = HttpHeaders()
+        headers.location = URI.create(kakaoAuthService.getKakaoAuthorizationUrl())
 
-	private final KakaoAuthService kakaoAuthService;
-	private final CookieService cookieService;
-	private final String clientBaseUrl;
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).body(null)
+    }
 
-	public KakaoAuthController(KakaoAuthService kakaoAuthService, CookieService cookieService,
-		@Value("${CLIENT_BASE_URL}") String clientBaseUrl
-	) {
-		this.kakaoAuthService = kakaoAuthService;
-		this.cookieService = cookieService;
-		this.clientBaseUrl = clientBaseUrl;
-	}
+    /**
+     * 카카오에서 발급 받은 인가 토큰으로 access토큰, refresh토큰 요청하는 메서드
+     * @param authorizationCode
+     * @return
+     */
+    @GetMapping("/callback")
+    fun authorizeAndLoginWithKakao(
+        @RequestParam(value = "code", required = false) authorizationCode: String,
+        @RequestParam(value = "error", required = false) error: String?,
+        @RequestParam(value = "error-description", required = false) errorDescription: String?,
+        request: HttpServletRequest, response: HttpServletResponse
+    ): ResponseEntity<Any> {
+        val headers = HttpHeaders()
+        headers.location = URI.create(clientBaseUrl)
 
-	/**
-	 * 카카오 로그인 페이지로 리다이렉트 및
-	 * 인가 토큰 발급 요청하는 메서드
-	 * @return
-	 */
-	@GetMapping("/login")
-	public ResponseEntity<Object> kakaoLogin() {
+        // 카카오에서 인가 토큰이 아닌 에러를 반환할 시 홈페이지로 리다이렉트 및 에러 메세지 응답
+        if (error != null) {
+            val errorResponse = ErrorResponse.of(
+                errorDescription ?: "UNKNOWN_ERROR", "400-$error", request.requestURI
+            )
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(URI.create(kakaoAuthService.getKakaoAuthorizationUrl()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers)
+                .body(errorResponse)
+        }
 
-		return ResponseEntity.status(HttpStatus.FOUND).headers(headers).body(null);
-	}
+        val kakaoTokenDto = kakaoAuthService.getTokenFromKakao(authorizationCode)
+        val kakaoUserInfoDto = kakaoAuthService.getUserInfo(kakaoTokenDto.accessToken)
 
-	/**
-	 * 카카오에서 발급 받은 인가 토큰으로 access토큰, refresh토큰 요청하는 메서드
-	 * @param authorizationCode
-	 * @return
-	 */
-	@GetMapping("/callback")
-	public ResponseEntity<Object> authorizeAndLoginWithKakao(
-		@RequestParam(value = "code", required = false) String authorizationCode,
-		@RequestParam(value = "error", required = false) String error,
-		@RequestParam(value = "error-description", required = false) String errorDescription,
-		HttpServletRequest request, HttpServletResponse response) {
+        val kakaoId = kakaoUserInfoDto.id
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(URI.create(clientBaseUrl));
+        // 기존 사용인지 검증 후 신규 사용자일 시 회원가입 진행
+        checkNewMemberAndJoin(kakaoId, kakaoUserInfoDto)
 
-		// 카카오에서 인가 토큰이 아닌 에러를 반환할 시 홈페이지로 리다이렉트 및 에러 메세지 응답
-		if (error != null) {
-			ErrorResponse errorResponse = ErrorResponse.of(
-				errorDescription, "400-" + error, request.getRequestURI());
+        // 로그인 진행
+        return login(kakaoTokenDto, kakaoId, response, headers)
+    }
 
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers)
-				.body(errorResponse);
-		}
+    private fun checkNewMemberAndJoin(kakaoId: Long, kakaoUserInfoDto: KakaoUserInfoResponseDto) {
+        if (!kakaoAuthService.existsMemberByKakaoId(kakaoId)) {
+            kakaoAuthService.join(kakaoUserInfoDto)
+        }
+    }
 
-		KakaoTokenResponseDto kakaoTokenDto = kakaoAuthService.getTokenFromKakao(authorizationCode);
-		KakaoUserInfoResponseDto kakaoUserInfoDto = kakaoAuthService.getUserInfo(kakaoTokenDto.accessToken());
+    private fun login(
+        kakaoTokenDto: KakaoTokenResponseDto, kakaoId: Long,
+        response: HttpServletResponse, headers: HttpHeaders
+    ): ResponseEntity<Any> {
+        val loginDto = kakaoAuthService.login(kakaoId, kakaoTokenDto)
 
-		Long kakaoId = kakaoUserInfoDto.id();
+        cookieService.addAccessTokenToCookie(loginDto.accessToken, response)
+        cookieService.addRefreshTokenToCookie(loginDto.refreshToken, response)
 
-		// 기존 사용인지 검증 후 신규 사용자일 시 회원가입 진행
-		checkNewMemberAndJoin(kakaoId, kakaoUserInfoDto);
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .headers(headers)
+            .body(ApiResponse.of<Any>("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname))
+    }
 
-		// 로그인 진행
-		return login(kakaoTokenDto, kakaoId, response, headers);
-	}
+    /**
+     * 카카오 로그아웃 옵션 선택 페이지로 리다이렉트
+     * @param customUserDetails
+     * @return
+     */
+    @GetMapping("/logout")
+    fun logout(@AuthenticationPrincipal customUserDetails: CustomUserDetails): ResponseEntity<Void> {
+        val headers = HttpHeaders()
+        headers.location = URI.create(kakaoAuthService.getKakaoLogoutUrl(customUserDetails.userId))
 
-	private void checkNewMemberAndJoin(Long kakaoId, KakaoUserInfoResponseDto kakaoUserInfoDto) {
-		if (!kakaoAuthService.existsMemberByKakaoId(kakaoId)) {
-			kakaoAuthService.join(kakaoUserInfoDto);
-		}
-	}
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .headers(headers).body(null)
+    }
 
-	private ResponseEntity<Object> login(
-		KakaoTokenResponseDto kakaoTokenDto, Long kakaoId,
-		HttpServletResponse response, HttpHeaders headers
-	) {
-		LoginResponseDto loginDto = kakaoAuthService.login(kakaoId, kakaoTokenDto);
+    @GetMapping("/logout/callback")
+    fun handleKakaoLogoutCallback(
+        response: HttpServletResponse,
+        @RequestParam("state") userId: Long
+    ): ResponseEntity<ApiResponse<String>> {
+        kakaoAuthService.logout(userId, response)
 
-		cookieService.addAccessTokenToCookie(loginDto.accessToken(), response);
-		cookieService.addRefreshTokenToCookie(loginDto.refreshToken(), response);
+        val headers = HttpHeaders()
+        headers.location = URI.create(clientBaseUrl)
 
-		return ResponseEntity.status(HttpStatus.FOUND)
-			.headers(headers)
-			.body(ApiResponse.of("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname()));
-	}
-
-	/**
-	 * 카카오 로그아웃 옵션 선택 페이지로 리다이렉트
-	 * @param customUserDetails
-	 * @return
-	 */
-	@GetMapping("/logout")
-	public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(URI.create(kakaoAuthService.getKakaoLogoutUrl(customUserDetails.getUserId())));
-
-		return ResponseEntity.status(HttpStatus.FOUND)
-			.headers(headers).body(null);
-	}
-
-	@GetMapping("/logout/callback")
-	public ResponseEntity<ApiResponse<String>> handleKakaoLogoutCallback(HttpServletResponse response,
-		@RequestParam("state") Long userId) {
-
-		kakaoAuthService.logout(userId, response);
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setLocation(URI.create(clientBaseUrl));
-
-		return ResponseEntity.status(HttpStatus.FOUND)
-			.headers(headers).body(ApiResponse.of("성공적으로 로그아웃 되었습니다."));
-	}
-
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .headers(headers).body(ApiResponse.of("성공적으로 로그아웃 되었습니다."))
+    }
 }
