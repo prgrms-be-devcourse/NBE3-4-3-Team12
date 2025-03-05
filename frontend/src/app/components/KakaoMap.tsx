@@ -32,6 +32,10 @@ export default function KakaoMap({ onLocationSelect, selectedLocations }: KakaoM
 
             // 여러 마커를 표시
             if (selectedLocations && selectedLocations.length > 0) {
+                // 위도, 경도의 합을 저장할 변수 초기화
+                let sumLat = 0;
+                let sumLng = 0;
+
                 selectedLocations.forEach((location) => {
                     const position = new window.kakao.maps.LatLng(location.latitude, location.longitude);
                     const marker = new window.kakao.maps.Marker({
@@ -40,12 +44,26 @@ export default function KakaoMap({ onLocationSelect, selectedLocations }: KakaoM
                     });
 
                     markers.push(marker);
+
+                    // 위도, 경도 합계 계산
+                    sumLat += location.latitude;
+                    sumLng += location.longitude;
                 });
 
-                // 마지막 마커 위치로 지도 중심 설정
-                const lastLocation = selectedLocations[selectedLocations.length - 1];
-                const lastPosition = new window.kakao.maps.LatLng(lastLocation.latitude, lastLocation.longitude);
-                map.setCenter(lastPosition);
+                // 평균 위도, 경도 계산 (중심점)
+                const centerLat = sumLat / selectedLocations.length;
+                const centerLng = sumLng / selectedLocations.length;
+
+                // 계산된 중심점으로 지도 중심 설정
+                const centerPosition = new window.kakao.maps.LatLng(centerLat, centerLng);
+                map.setCenter(centerPosition);
+
+                // 마커가 여러 개일 경우 조금 더 넓게 보여주기 (레벨 값이 클수록 멀리서 보임)
+                if (selectedLocations.length > 1) {
+                    map.setLevel(6); // 레벨은 상황에 맞게 조정
+                } else {
+                    map.setLevel(3); // 마커가 하나일 경우 더 가깝게
+                }
             }
 
 
