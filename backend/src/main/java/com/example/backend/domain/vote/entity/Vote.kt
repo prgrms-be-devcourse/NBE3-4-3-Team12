@@ -3,10 +3,6 @@ package com.example.backend.domain.vote.entity
 import com.example.backend.global.base.BaseEntity
 import jakarta.persistence.*
 
-//@Getter
-//@NoArgsConstructor(access = AccessLevel.PROTECTED)
-//@AllArgsConstructor
-//@Builder
 @Entity
 class Vote(
     @Id

@@ -2,7 +2,6 @@ package com.example.backend.test.vote
 
 import com.example.backend.domain.vote.dto.VoteRequestDto
 import org.junit.jupiter.api.Test
-import kotlin.math.log
 import kotlin.test.assertEquals
 
 class VoteDtoTest {

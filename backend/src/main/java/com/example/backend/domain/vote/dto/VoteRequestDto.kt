@@ -1,11 +1,7 @@
 package com.example.backend.domain.vote.dto
 
 import com.example.backend.domain.vote.entity.Vote
-import lombok.Builder
-import lombok.Getter
-//
-//@Getter
-//@Builder
+
 data class VoteRequestDto(
     val location: String,
     val address: String,
