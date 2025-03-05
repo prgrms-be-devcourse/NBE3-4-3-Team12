@@ -15,6 +15,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import java.lang.reflect.Field
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -40,9 +41,18 @@ class CategoryServiceTest {
         category1 = Category(name = "Category 1", categoryType = CategoryType.EXERCISE)
         category2 = Category(name = "Category 2", categoryType = CategoryType.HOBBY)
 
-        Mockito.lenient().`when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
-        Mockito.lenient().`when`(categoryRepository.findById(category2.id)).thenReturn(Optional.of(category2))
+        setId(category1, 1L)
+        setId(category2, 2L)
+
+        Mockito.lenient().`when`(categoryRepository.findById(category1.id!!)).thenReturn(Optional.of(category1))
+        Mockito.lenient().`when`(categoryRepository.findById(category2.id!!)).thenReturn(Optional.of(category2))
         Mockito.lenient().`when`(categoryRepository.findAll()).thenReturn(listOf(category1, category2))
+    }
+
+    fun setId(category: Category, id: Long) {
+        val idField: Field = category::class.java.getDeclaredField("id")
+        idField.isAccessible = true
+        idField.set(category, id)
     }
 
     @Test
@@ -67,17 +77,17 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 수정 테스트")
     fun modifyCategoryTest() {
-        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
+        `when`(categoryRepository.findById(category1.id!!)).thenReturn(Optional.of(category1))
 
         val updatedCategoryDto = CategoryRequestDto(name = "Updated Category", type = CategoryType.STUDY)
 
-        val response = categoryService.modify(category1.id, updatedCategoryDto)
+        val response = categoryService.modify(category1.id!!, updatedCategoryDto)
 
         assertThat(response).isNotNull
         assertThat(response.name).isEqualTo(updatedCategoryDto.name)
         assertThat(response.type).isEqualTo(updatedCategoryDto.type)
 
-        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id!!)
         Mockito.verify(categoryRepository, Mockito.times(1)).save(Mockito.any(Category::class.java))
     }
 
@@ -131,42 +141,42 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 삭제 성공 테스트")
     fun deleteCategoryTest() {
-        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
+        `when`(categoryRepository.findById(category1.id!!)).thenReturn(Optional.of(category1))
 
-        categoryService.delete(category1.id)
+        categoryService.delete(category1.id!!)
 
-        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id!!)
         Mockito.verify(categoryRepository, Mockito.times(1)).delete(category1)
     }
 
     @Test
     @DisplayName("카테고리 삭제 시 잘못된 id로 실패 테스트")
     fun deleteCategoryFailureTest() {
-        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.empty())
+        `when`(categoryRepository.findById(category1.id!!)).thenReturn(Optional.empty())
 
         val exception = org.junit.jupiter.api.assertThrows<CategoryException> {
-            categoryService.delete(category1.id)
+            categoryService.delete(category1.id!!)
         }
 
         assertThat(exception).isNotNull
         assertThat(exception.message).contains("해당 카테고리는 존재하지 않습니다.")
 
-        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id!!)
         Mockito.verify(categoryRepository, Mockito.times(0)).delete(Mockito.any(Category::class.java))
     }
 
     @Test
     @DisplayName("카테고리 조회 성공 테스트")
     fun getCategoryTest() {
-        `when`(categoryRepository.findById(category1.id)).thenReturn(Optional.of(category1))
+        `when`(categoryRepository.findById(category1.id!!)).thenReturn(Optional.of(category1))
 
-        val response = categoryService.getCategory(category1.id)
+        val response = categoryService.getCategory(category1.id!!)
 
         assertThat(response).isNotNull
         assertThat(response.name).isEqualTo(category1.name)
         assertThat(response.type).isEqualTo(category1.categoryType)
 
-        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id)
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(category1.id!!)
     }
 
     @Test
