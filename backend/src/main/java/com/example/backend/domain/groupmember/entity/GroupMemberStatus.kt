@@ -1,6 +1,6 @@
 package com.example.backend.domain.groupmember.entity;
 
-public enum GroupMemberStatus {
+enum class GroupMemberStatus {
     APPLYING,
     APPROVED,
     REJECTED;
