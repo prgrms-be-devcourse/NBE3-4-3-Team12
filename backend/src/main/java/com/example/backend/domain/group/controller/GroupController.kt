@@ -9,7 +9,6 @@ import com.example.backend.global.auth.model.CustomUserDetails
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.sqm.tree.SqmNode.log
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity;
@@ -37,7 +36,7 @@ class GroupController(
     @GetMapping
     fun listGroups() : ResponseEntity<List<GroupResponseDto>>{
         log.info("Listing all groups are requested");
-        val response : MutableList<GroupResponseDto> = groupService.findNotDeletedAllGroups()
+        val response : List<GroupResponseDto> = groupService.findNotDeletedAllGroups()
         return ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
 
@@ -86,7 +85,7 @@ class GroupController(
     fun getGroupByMember(
         @AuthenticationPrincipal userDetails : CustomUserDetails
     ) : ResponseEntity<List<GroupResponseDto>>{
-        val response : MutableList<GroupResponseDto> =  groupService.getGroupByMemberId(userDetails.userId)
+        val response : List<GroupResponseDto> =  groupService.getGroupsByMemberId(userDetails.userId)
         return ResponseEntity(response, HttpStatusCode.valueOf(200));
     }
 }

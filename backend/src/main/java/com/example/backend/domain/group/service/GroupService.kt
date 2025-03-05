@@ -36,7 +36,7 @@ class GroupService(
 
         val member : Member = memberRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND_MEMBER)}
 
-        val categories : MutableList<Category> = categoryRepository.findAllById(groupRequestDto.categoryIds)
+        val categories : List<Category> = categoryRepository.findAllById(groupRequestDto.categoryIds)
         val group : Group = Group(
                 groupRequestDto.title,
                 groupRequestDto.description,
@@ -129,9 +129,9 @@ class GroupService(
     }
 
     @Transactional(readOnly = true)
-    fun getGroupByMemberId(memberId : Long) : MutableList<GroupResponseDto>{
-        val groups : MutableList<Group> = groupRepository.findGroupByMemberId(memberId)
-        return groups.map{GroupResponseDto(it)}.toMutableList()
+    fun getGroupsByMemberId(memberId : Long) : List<GroupResponseDto>{
+        val groups : List<Group> = groupRepository.findGroupByMemberId(memberId)
+        return groups.map{GroupResponseDto(it)}
     }
 
     @Transactional(readOnly = true)
