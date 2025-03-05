@@ -6,9 +6,7 @@ import com.example.backend.global.auth.kakao.service.KakaoAuthService
 import com.example.backend.global.auth.model.CustomUserDetails
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.response.ApiResponse
-import com.example.backend.global.response.ApiResponse.Companion.of
 import com.example.backend.global.response.ErrorResponse
-import com.example.backend.global.response.ErrorResponse.Companion.of
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import lombok.extern.slf4j.Slf4j
