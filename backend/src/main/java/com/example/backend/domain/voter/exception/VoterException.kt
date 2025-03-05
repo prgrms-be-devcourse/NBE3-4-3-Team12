@@ -2,11 +2,14 @@ package com.example.backend.domain.voter.exception
 
 import org.springframework.http.HttpStatus
 
-class VoterException(
-    val voterErrorCode: VoterErrorCode
-) : RuntimeException(voterErrorCode.message) {
+class VoterException(private val voterErrorCode: VoterErrorCode) : RuntimeException() {
 
-    fun getStatus(): HttpStatus = voterErrorCode.httpStatus
+    override val message: String
+        get() = voterErrorCode.message
 
-    fun getCode(): String = voterErrorCode.code
+    val status: HttpStatus
+        get() = voterErrorCode.httpStatus
+
+    val code: String
+        get() = voterErrorCode.code
 }
