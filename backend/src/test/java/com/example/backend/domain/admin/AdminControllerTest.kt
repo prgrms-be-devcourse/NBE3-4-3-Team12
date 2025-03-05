@@ -55,7 +55,7 @@ class AdminControllerTest @Autowired constructor(
         memberRepository.save(member)
 
         val group = Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10)
-        return groupRepository.save(group).id
+        return groupRepository.save(group).id!!
     }
 
     companion object {

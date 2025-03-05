@@ -14,8 +14,9 @@ class AdminGetService(
 
     // 관리자 name 으로 가져오기
     @Transactional(readOnly = true)
-    fun getAdminByName(name: String): Admin? {
+    fun getAdminByName(name: String): Admin {
         return adminRepository.findByAdminName(name)
+            ?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
     }
 
     // 리프레시 토큰으로 가져오기

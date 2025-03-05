@@ -21,15 +21,10 @@ class AdminController(
 	// 관리자 로그인
 	@PostMapping("/login")
 	fun login(@RequestBody request: AdminLoginRequest, response: HttpServletResponse): ResponseEntity<String> {
-		try {
 		val admin = adminService.getAdmin(request.adminName, request.password)
 		adminService.generateToken(admin, response)
 		adminService.generateAndSaveRefreshToken(admin, response)
 		return ResponseEntity.ok("로그인 성공")
-			} catch (e: Exception) {
-				e.printStackTrace()
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류")
-			}
 		}
 
 	// 관리자 로그아웃
