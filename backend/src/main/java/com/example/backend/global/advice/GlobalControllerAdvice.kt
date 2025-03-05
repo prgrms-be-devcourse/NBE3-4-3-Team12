@@ -121,6 +121,6 @@ class GlobalControllerAdvice {
     @ExceptionHandler(Exception::class)
     fun handleVoterException(ex: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse.of(ex.message ?: "INTERNAL_SERVER_ERROR", "500", request.requestURI))
+            .body(ErrorResponse.of(ex.message ?: "UNKNOWN_ERROR", "500", request.requestURI))
     }
 }
