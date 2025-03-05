@@ -61,15 +61,10 @@ public class AdminControllerTest {
         Member member = new Member(1L, "testUser", "test@test.com");
         this.memberRepository.save(member);
 
-        Group group = Group.builder()
-                .title("운동모임")
-                .description("운동 하는 사람들의 모임")
-                .member(member)
-                .status(GroupStatus.RECRUITING)
-                .maxParticipants(10)
-                .build();
-        groupRepository.save(group);
-        return group.getId();
+        Group group = new Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10);
+
+        Group group1 = groupRepository.save(group);
+        return group1.getId();
     }
 
     @BeforeAll
