@@ -155,7 +155,7 @@ class GroupService(
         }
         return groups.map { group ->
             val topLocation = voteRepository.findTopVotedLocationByGroupId(group.id)
-            if (topLocation.isEmpty()){
+            if (topLocation == null){
                 throw GroupException(GroupErrorCode.NOT_FOUND_LOCATION)
             }
             GroupLocationDto(group.id,group.title, topLocation.toString())
