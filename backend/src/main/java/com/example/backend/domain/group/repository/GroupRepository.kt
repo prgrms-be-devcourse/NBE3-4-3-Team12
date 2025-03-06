@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface GroupRepository : JpaRepository<Group, Long> {
     fun findGroupByMemberId(memberId: Long): List<Group>
+    fun description(description: String): MutableList<Group>
 }

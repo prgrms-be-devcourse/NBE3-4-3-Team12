@@ -74,7 +74,7 @@ class VoterService(
 	}
 
 	fun getVoteIdsByGroupIdAndMemberId(groupId: Long, memberId: Long): MemberVoteResponseDto {
-		val voteIds = voteRepository.findAllByGroupId(groupId).map { it.id }
+		val voteIds = voteRepository.findAllByGroupId(groupId).map { it.id!! }
 		val voteResultIds = voterRepository.findVoteIdsByVoteIdsAndMemberId(voteIds, memberId)
 
 		return MemberVoteResponseDto(voteResultIds)
