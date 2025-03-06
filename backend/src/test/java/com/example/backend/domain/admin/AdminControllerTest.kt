@@ -64,7 +64,6 @@ class AdminControllerTest(
 
         @BeforeAll
         fun setUp() {
-            adminRepository.deleteAll()
             val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
             adminRepository.save(admin)
         }

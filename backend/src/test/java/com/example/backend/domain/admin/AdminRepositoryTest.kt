@@ -26,10 +26,7 @@ class AdminRepositoryTest(
 
         @BeforeAll
         fun init() {
-            adminRepository.deleteAll()
             admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
-            adminRepository.save(admin)
-
             admin.setRefreshToken("468cb628-5f71-4e34-89fb-7e5b6ce7575b", LocalDateTime.now())
             adminRepository.save(admin)
         }
