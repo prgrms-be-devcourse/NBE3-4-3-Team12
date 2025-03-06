@@ -149,9 +149,15 @@ class GroupService(
 
     @Transactional(readOnly = true)
     fun getLocationOfCompletedGroup(memberId: Long): List<GroupLocationDto> {
-        val groups = groupRepository.findCompletedGroupsByMemberId(memberId)
+        val groups : List<Group> = groupRepository.findCompletedGroupsByMemberId(memberId)
+        if (groups.isEmpty()) {
+            throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
+        }
         return groups.map { group ->
             val topLocation = voteRepository.findTopVotedLocationByGroupId(group.id)
+            if (topLocation.isEmpty()){
+                throw GroupException(GroupErrorCode.NOT_FOUND_LOCATION)
+            }
             GroupLocationDto(group.title, topLocation.toString())
         }
     }
