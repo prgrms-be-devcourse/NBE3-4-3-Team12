@@ -36,6 +36,7 @@ class VoteService(
             .map { entry ->
                 val vote = entry.key
                 MostVotedLocationDto(
+                    location = vote.location,
                     address = vote.address,
                     latitude = vote.latitude,
                     longitude = vote.longitude
