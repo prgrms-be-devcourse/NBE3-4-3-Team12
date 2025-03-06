@@ -1,5 +1,6 @@
 package com.example.backend.domain.member
 
+import com.example.backend.domain.member.dto.MemberInfoDto
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
 import jakarta.persistence.EntityManager
@@ -31,13 +32,20 @@ class MemberRepositoryTest {
     @PersistenceContext
     private lateinit var em: EntityManager
 
+    private lateinit var member: Member
+
     @BeforeEach
     fun setup() {
         memberRepository.deleteAll()
         em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
-        val member = Member(1L, "testUser", "test@test.com")
-        memberRepository.save(member)
+        member = memberRepository.save(
+            Member(
+                kakaoId = 1L,
+                nickname = "testUser",
+                email = "test@test.com"
+            )
+        )
     }
 
     @Test
@@ -144,6 +152,69 @@ class MemberRepositoryTest {
 
         // when
         // then
+        assertThat(optionalMember.isPresent).isFalse
+    }
+
+    @Test
+    @DisplayName("findMemberInfoDtoById 성공 테스트")
+    fun findMemberInfoDtoByIdSuccessTest() {
+        // given
+        val memberInfoDtoOfMember = MemberInfoDto.of(member)
+        val optionalMemberInfoDto = memberRepository.findMemberInfoDtoById(1L)
+
+        // when
+        assertThat(optionalMemberInfoDto.isPresent).isTrue
+        val memberInfoDto = optionalMemberInfoDto.get()
+
+        // then
+        assertThat(memberInfoDto).isEqualTo(memberInfoDtoOfMember)
+    }
+
+    @Test
+    @DisplayName("findMemberInfoDtoById 실패 테스트 - 존재하지 않는 id로 조회 시도")
+    fun findMemberInfoDtoByIdFailTest_WhenMemberNotExists() {
+        // given
+        val optionalMemberInfoDto = memberRepository.findMemberInfoDtoById(2L)
+
+        // when
+        // then
+        assertThat(optionalMemberInfoDto.isPresent).isFalse
+    }
+
+    @Test
+    @DisplayName("findByKakaoRefreshToken 성공 테스트")
+    fun findByKakaoRefreshTokenSuccessTest() {
+        // given
+        val refreshToken = "testRefreshToken.abcdefghijklmnopqrstuvwxyz.1234567890"
+        member.updateRefreshToken(refreshToken)
+
+        val optionalMember = memberRepository.findByKakaoRefreshToken(refreshToken)
+
+        // when
+        assertThat(optionalMember.isPresent).isTrue
+        val member = optionalMember.get()
+
+        // then
+        assertThat(member.id).isEqualTo(1L)
+        assertThat(member.kakaoId).isEqualTo(1L)
+        assertThat(member.nickname).isEqualTo("testUser")
+        assertThat(member.email).isEqualTo("test@test.com")
+        assertThat(member.kakaoRefreshToken).isEqualTo(refreshToken)
+
+    }
+
+    @Test
+    @DisplayName("findByKakaoRefreshToken 실패 테스트 - 존재하지 않는 refreshToken으로 조회 시도")
+    fun findByKakaoRefreshTokenFailTest_WhenMemberNotExists() {
+        // given
+        val refreshToken = "testRefreshToken.abcdefghijklmnopqrstuvwxyz.1234567890"
+        member.updateRefreshToken(refreshToken)
+
+        // when
+        val blankRefreshToken = ""
+        val optionalMember = memberRepository.findByKakaoRefreshToken(blankRefreshToken)
+
+        //then
         assertThat(optionalMember.isPresent).isFalse
     }
 }
