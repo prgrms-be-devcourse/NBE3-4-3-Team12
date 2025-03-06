@@ -3,11 +3,12 @@
 import React, {useEffect, useState} from "react";
 import MainMenu from "../components/MainMenu";
 import {useRouter} from "next/navigation"; // useRouter 훅 추가
-import {getCurrentUser, getUserGroups} from "@/app/api"; // getUserGroups 함수 추가
+import {getCurrentUser, getUserGroups, getLocationOfGroup} from "@/app/api"; // getUserGroups 함수 추가
 
 const MyInfoPage = () => {
     const [user, setUser] = useState(null);
     const [groups, setGroups] = useState([]); // 소속 모임 목록
+    const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -21,6 +22,10 @@ const MyInfoPage = () => {
 
                 const userGroups = await getUserGroups(); // 소속 모임 목록 조회
                 setGroups(userGroups); // 소속 모임 상태 업데이트
+                setLoading(false);
+
+                const completeLocation = await getLocationOfGroup();
+                setLocations(completeLocation);
                 setLoading(false);
             } catch (err) {
                 setError("정보를 불러오는데 실패했습니다.");
@@ -77,6 +82,23 @@ const MyInfoPage = () => {
                             >
                                 <span>{group.title}</span>
                                 <span className="text-base text-gray-500">{group.status}</span>
+                            </li>
+                        ))
+                    )}
+                </ul>
+                <h2 className="text-xl font-semibold mt-8 mb-4">투표 완료 모임</h2>
+                <ul className="space-y-4">
+                    {locations.length === 0 ? (
+                        <li>참여 중인 모임이 없습니다.</li>
+                    ) : (
+                        locations.map((location) => (
+                            <li
+                                key={location.id}
+                                className="p-4 border rounded-xl flex justify-between text-lg cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleGroupClick(location.groupId)} // 그룹 클릭 시 해당 페이지로 이동
+                            >
+                                <span>{location.title}</span>
+                                <span className="text-base text-gray-500">{location.location}</span>
                             </li>
                         ))
                     )}

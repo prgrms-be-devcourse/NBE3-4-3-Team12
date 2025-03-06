@@ -2,6 +2,7 @@ package com.example.backend.domain.group.service;
 
 import com.example.backend.domain.category.entity.Category;
 import com.example.backend.domain.category.repository.CategoryRepository
+import com.example.backend.domain.group.dto.GroupLocationDto
 import com.example.backend.domain.group.dto.GroupModifyRequestDto
 import com.example.backend.domain.group.dto.GroupRequestDto
 import com.example.backend.domain.group.dto.GroupResponseDto;
@@ -16,7 +17,9 @@ import com.example.backend.domain.groupmember.entity.GroupMemberStatus
 import com.example.backend.domain.groupmember.repository.GroupMemberRepository
 import com.example.backend.domain.member.entity.Member;
 import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.domain.vote.dto.VoteResultDto
 import com.example.backend.domain.vote.repository.VoteRepository
+import com.example.backend.domain.vote.service.VoteService
 import com.example.backend.domain.voter.repository.VoterRepository
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class GroupService(
-    val groupRepository : GroupRepository,
-    val memberRepository : MemberRepository,
-    val groupMemberRepository : GroupMemberRepository,
-    val categoryRepository : CategoryRepository,
-    val voteRepository : VoteRepository,
-    val voterRepository : VoterRepository
+    val groupRepository: GroupRepository,
+    val memberRepository: MemberRepository,
+    val groupMemberRepository: GroupMemberRepository,
+    val categoryRepository: CategoryRepository,
+    val voteRepository: VoteRepository,
+    val voterRepository: VoterRepository,
+    private val voteService: VoteService
 ) {
     @Transactional
     fun create(groupRequestDto : GroupRequestDto, id : Long) : GroupResponseDto{
@@ -144,6 +148,21 @@ class GroupService(
             throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
         }
         return groups
+    }
+
+    @Transactional(readOnly = true)
+    fun getLocationOfCompletedGroup(memberId: Long): List<GroupLocationDto> {
+        val groups : List<Group> = groupRepository.findCompletedGroupsByMemberId(memberId)
+        if (groups.isEmpty()) {
+            throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
+        }
+        return groups.map { group ->
+            val location : VoteResultDto = voteService.getMostVotedLocations(group.id)
+            if (location == null){
+                throw GroupException(GroupErrorCode.NOT_FOUND_LOCATION)
+            }
+            GroupLocationDto(group.id,group.title, location.mostVotedLocations.map { it.location }.toString())
+        }
     }
 }
 

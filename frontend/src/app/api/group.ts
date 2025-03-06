@@ -101,3 +101,18 @@ export const getUserGroups = async () => {
         throw error;
     }
 };
+
+// 유저가 속한 투표완료된 그룹명과 선정된 장소 조회
+export const getLocationOfGroup = async () => {
+    try {
+        const response = await api.get("/groups/location", {
+            headers:{
+                "Content-Type": "application/json",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("사용자 참가 중인 모임 목록 조회 중 오류 발생",error);
+        throw error;
+    }
+};
