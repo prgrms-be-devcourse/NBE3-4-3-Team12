@@ -8,6 +8,7 @@ import com.example.backend.domain.voter.exception.VoterException
 import com.example.backend.global.exception.GlobalErrorCode
 import com.example.backend.global.exception.GlobalException
 import com.example.backend.global.response.ErrorResponse
+import com.example.backend.global.response.ErrorResponse.Companion.of
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.ConstraintViolationException
@@ -25,6 +26,7 @@ import java.util.function.Consumer
  * Global 예외 처리 advice 클래스
  * @author 100minha
  */
+// TODO: !! 연산자 사용 제거
 @ControllerAdvice
 class GlobalControllerAdvice {
     /**
@@ -113,7 +115,7 @@ class GlobalControllerAdvice {
     @ExceptionHandler(VoterException::class)
     fun handleVoterException(ex: VoterException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse.of(ex.message!!, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(Exception::class)
