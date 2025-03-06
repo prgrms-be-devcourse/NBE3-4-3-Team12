@@ -5,55 +5,34 @@ import com.example.backend.domain.admin.exception.AdminErrorCode
 import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
+import org.junit.jupiter.api.*
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestConstructor
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.ResultActions
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@DataJpaTest
 @ActiveProfiles("test")
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AdminRepositoryTest(
-    private val mockMvc: MockMvc,
     private val adminRepository: AdminRepository
 ) {
 
-    private fun loginAndGetResponse(): ResultActions {
-        val loginRequestJson = """
-            {
-                "adminName": "admin",
-                "password": "1234"
-            }
-        """.trimIndent()
+    private lateinit var admin: Admin
 
-        return mockMvc.perform(
-            post("/admin/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginRequestJson)
-        )
-    }
-
-    companion object {
-        @JvmStatic
         @BeforeAll
-        fun setUp(@Autowired adminRepository: AdminRepository) {
-            val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+        fun init() {
+            adminRepository.deleteAll()
+            admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+            adminRepository.save(admin)
+
+            admin.setRefreshToken("468cb628-5f71-4e34-89fb-7e5b6ce7575b", LocalDateTime.now())
             adminRepository.save(admin)
         }
-    }
 
     @Test
     @DisplayName("save() 검증 테스트")
@@ -89,18 +68,7 @@ class AdminRepositoryTest(
     @Test
     @DisplayName("findByRefreshToken 검증")
     fun findByRefreshToken() {
-        val loginResponse = loginAndGetResponse()
-        val response = loginResponse.andReturn().response
-
-        val cookies = response.cookies
-
-        // refreshToken 쿠키 찾기
-        val refreshToken = cookies.find { it.name == "refreshToken" }?.value
-            ?: throw RuntimeException("Refresh Token not found")
-
-        val admin = adminRepository.findByRefreshToken(refreshToken)
-            ?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
-
-        assertThat(admin.adminName).isEqualTo("admin")
+        val admin = adminRepository.findByRefreshToken("468cb628-5f71-4e34-89fb-7e5b6ce7575b")
+        assertThat(admin!!.adminName).isEqualTo("admin")
     }
 }

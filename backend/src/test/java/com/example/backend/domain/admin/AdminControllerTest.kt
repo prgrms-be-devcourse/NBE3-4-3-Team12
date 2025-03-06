@@ -12,7 +12,7 @@ import org.hibernate.validator.internal.util.Contracts.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -31,10 +31,12 @@ import org.springframework.transaction.annotation.Transactional
 @ActiveProfiles("test")
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AdminControllerTest(
         private val mockMvc: MockMvc,
         private val groupRepository: GroupRepository,
-        private val memberRepository: MemberRepository
+        private val memberRepository: MemberRepository,
+        private val adminRepository: AdminRepository
 ) {
 
     private fun loginAndGetResponse(): ResultActions {
@@ -60,15 +62,13 @@ class AdminControllerTest(
         return groupRepository.save(group).id!!
     }
 
-    companion object {
-        @JvmStatic
         @BeforeAll
-        fun setUp(@Autowired adminRepository: AdminRepository) {
+        fun setUp() {
             adminRepository.deleteAll()
             val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
             adminRepository.save(admin)
         }
-    }
+
 
     @Test
     @DisplayName("로그인 성공 테스트")
