@@ -25,7 +25,6 @@ class AdminService(
     @Transactional(readOnly = true)
     fun getAdmin(adminName: String, password: String): Admin {
         val admin: Admin = adminGetService.getAdminByName(adminName)
-            ?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
 
         if (!passwordEncoder.matches(password, admin.password)) {
             throw AdminException(AdminErrorCode.INVALID_CREDENTIALS)
@@ -63,7 +62,7 @@ class AdminService(
             admin.setRefreshToken(null, null)
             adminRepository.save(admin)
         } else  {
-            throw AdminException(AdminErrorCode.INVALID_CREDENTIALS)
+            throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
         }
     }
 }
