@@ -79,6 +79,6 @@ class MemberService(
         )
 
         cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
-        return of(member)
+        return MemberInfoDto.of(member)
     }
 }
