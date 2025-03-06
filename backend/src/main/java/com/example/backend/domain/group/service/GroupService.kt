@@ -2,6 +2,7 @@ package com.example.backend.domain.group.service;
 
 import com.example.backend.domain.category.entity.Category;
 import com.example.backend.domain.category.repository.CategoryRepository
+import com.example.backend.domain.group.dto.GroupLocationDto
 import com.example.backend.domain.group.dto.GroupModifyRequestDto
 import com.example.backend.domain.group.dto.GroupRequestDto
 import com.example.backend.domain.group.dto.GroupResponseDto;
@@ -144,6 +145,15 @@ class GroupService(
             throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
         }
         return groups
+    }
+
+    @Transactional(readOnly = true)
+    fun getLocationOfCompletedGroup(memberId: Long): List<GroupLocationDto> {
+        val groups = groupRepository.findCompletedGroupsByMemberId(memberId)
+        return groups.map { group ->
+            val topLocation = voteRepository.findTopVotedLocationByGroupId(group.id)
+            GroupLocationDto(group.title, topLocation.toString())
+        }
     }
 }
 

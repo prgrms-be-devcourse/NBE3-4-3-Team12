@@ -1,9 +1,6 @@
 package com.example.backend.domain.group.controller;
 
-import com.example.backend.domain.group.dto.GroupModifyRequestDto
-import com.example.backend.domain.group.dto.GroupRequestDto
-import com.example.backend.domain.group.dto.GroupResponseDto;
-import com.example.backend.domain.group.dto.JoinGroupRequestDto
+import com.example.backend.domain.group.dto.*
 import com.example.backend.domain.group.service.GroupService
 import com.example.backend.global.auth.model.CustomUserDetails
 import jakarta.validation.Valid;
@@ -81,11 +78,20 @@ class GroupController(
         return ResponseEntity(HttpStatus.OK)
     }
 
-    @GetMapping("member")
+    @GetMapping("/member")
     fun getGroupByMember(
         @AuthenticationPrincipal userDetails : CustomUserDetails
     ) : ResponseEntity<List<GroupResponseDto>>{
         val response : List<GroupResponseDto> =  groupService.getGroupsByMemberId(userDetails.userId)
         return ResponseEntity(response, HttpStatusCode.valueOf(200));
+    }
+
+    @GetMapping("/location")
+    fun getLocationOfGroup(
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ) : ResponseEntity<List<GroupLocationDto>>{
+        val memberId : Long = userDetails.userId
+        val response : List<GroupLocationDto> = groupService.getLocationOfCompletedGroup(memberId)
+        return ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
 }

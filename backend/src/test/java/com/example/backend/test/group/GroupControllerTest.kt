@@ -13,6 +13,10 @@ import com.example.backend.domain.group.service.GroupService
 import com.example.backend.domain.groupcategory.GroupCategory
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.domain.vote.entity.Vote
+import com.example.backend.domain.vote.repository.VoteRepository
+import com.example.backend.domain.voter.entity.Voter
+import com.example.backend.domain.voter.repository.VoterRepository
 import com.example.backend.global.util.TestTokenProvider
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -51,6 +55,10 @@ class GroupControllerTest {
     private lateinit var groupRepository: GroupRepository
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
+    @Autowired
+    private lateinit var voteRepository: VoteRepository
+    @Autowired
+    private lateinit var voterRepository: VoterRepository
 
     @Autowired
     private lateinit var mvc : MockMvc
@@ -82,7 +90,16 @@ class GroupControllerTest {
             val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group,category) }.toMutableList()
             group.addGroupCategories(groupCategories)
             groupRepository.save(group)
-
+            val groupId = group.id
+            val vote1 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
+            val vote2 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
+            val vote3 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
+            voteRepository.save(vote1)
+            voteRepository.save(vote2)
+            voteRepository.save(vote3)
+            val voter = Voter(Voter.VoterId(member.id!!,groupId),member,vote1)
+            voterRepository.save(voter)
+            if (0<i) group.status = GroupStatus.COMPLETED
         }
     }
 
@@ -230,6 +247,21 @@ class GroupControllerTest {
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
             .andExpect(handler().methodName("getGroupByMember"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
+    }
+
+    @Test
+    @DisplayName("투표완료된 그룹명과 장소 조회")
+    fun t8() {
+        val resultActions : ResultActions = mvc.perform(
+            get("/groups/location")
+                .cookie( Cookie("accessToken",accessToken))
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(GroupController::class.java))
+            .andExpect(handler().methodName("getLocationOfGroup"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
     }

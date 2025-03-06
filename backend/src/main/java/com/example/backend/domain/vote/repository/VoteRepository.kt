@@ -16,4 +16,12 @@ interface VoteRepository : JpaRepository<Vote, Long> {
     fun findAllIdByGroupId(@Param("groupId") groupId: Long): List<Long>
 
     fun deleteAllByGroupId(groupId: Long)
+
+    @Query("""
+    SELECT v.location FROM Vote v 
+    WHERE v.groupId = :groupId 
+    GROUP BY v.location 
+    ORDER BY COUNT(v.location) DESC
+    """)
+    fun findTopVotedLocationByGroupId(@Param("groupId") groupId: Long): List<String?>
 }
