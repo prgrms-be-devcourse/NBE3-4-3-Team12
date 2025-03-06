@@ -53,7 +53,7 @@ class AdminControllerTest(
     }
 
     private fun createGroupResponse(): Long {
-        val member = Member(1L, "testUser", "test@test.com")
+        val member = Member(100L, "testUser", "test@test.com")
         memberRepository.save(member)
 
         val group = Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10)
@@ -64,6 +64,7 @@ class AdminControllerTest(
         @JvmStatic
         @BeforeAll
         fun setUp(@Autowired adminRepository: AdminRepository) {
+            adminRepository.deleteAll()
             val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
             adminRepository.save(admin)
         }
