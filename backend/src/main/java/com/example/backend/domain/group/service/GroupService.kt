@@ -158,7 +158,7 @@ class GroupService(
             if (topLocation.isEmpty()){
                 throw GroupException(GroupErrorCode.NOT_FOUND_LOCATION)
             }
-            GroupLocationDto(group.title, topLocation.toString())
+            GroupLocationDto(group.id,group.title, topLocation.toString())
         }
     }
 }
