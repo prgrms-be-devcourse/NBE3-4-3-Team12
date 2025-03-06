@@ -62,7 +62,7 @@ class AdminService(
             admin.setRefreshToken(null, null)
             adminRepository.save(admin)
         } else  {
-            throw AdminException(AdminErrorCode.INVALID_CREDENTIALS)
+            throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
         }
     }
 }

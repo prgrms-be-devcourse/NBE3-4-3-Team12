@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestConstructor
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -29,7 +30,8 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class AdminControllerTest @Autowired constructor(
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class AdminControllerTest(
         private val mockMvc: MockMvc,
         private val groupRepository: GroupRepository,
         private val memberRepository: MemberRepository
