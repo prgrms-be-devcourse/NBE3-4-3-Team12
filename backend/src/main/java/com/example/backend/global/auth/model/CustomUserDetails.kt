@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails
  * CustomUserDetails
  * @author 100minha
  */
-open class CustomUserDetails(
+class CustomUserDetails(
     private val memberInfoDto: MemberInfoDto
 ) : UserDetails {
 
@@ -31,19 +31,4 @@ open class CustomUserDetails(
     val email: String
         get() = memberInfoDto.email
 
-    override fun isAccountNonExpired(): Boolean {
-        return super.isAccountNonExpired()
-    }
-
-    override fun isAccountNonLocked(): Boolean {
-        return super.isAccountNonLocked()
-    }
-
-    override fun isCredentialsNonExpired(): Boolean {
-        return super.isCredentialsNonExpired()
-    }
-
-    override fun isEnabled(): Boolean {
-        return super.isEnabled()
-    }
 }

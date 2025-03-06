@@ -1,8 +1,5 @@
 package com.example.backend.global.response
 
-import lombok.AccessLevel
-import lombok.Builder
-
 /**
  * ErrorResponse
  * 전역에서 예외 발생 시 응답떄 사용할 클래스

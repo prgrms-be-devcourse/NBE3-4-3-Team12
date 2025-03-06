@@ -11,7 +11,6 @@ import com.example.backend.global.auth.kakao.util.KakaoAuthUtil
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.TokenProvider
 import jakarta.servlet.http.HttpServletResponse
-import lombok.RequiredArgsConstructor
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -26,7 +25,6 @@ import reactor.core.publisher.Mono
  * 카카오 로그인 관련 비즈니스 로직을 처리하는 서비스 클래스
  * @author 100minha
  */
-@RequiredArgsConstructor
 @Service
 class KakaoAuthService(
     private val kakaoAuthUtil: KakaoAuthUtil,

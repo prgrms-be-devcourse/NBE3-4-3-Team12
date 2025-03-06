@@ -14,8 +14,6 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import lombok.RequiredArgsConstructor
-import lombok.extern.slf4j.Slf4j
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -29,8 +27,6 @@ import java.io.IOException
  * @author 100minha
  */
 @Configuration
-@RequiredArgsConstructor
-@Slf4j
 class MemberAuthFilter(
     private val cookieService: CookieService,
     private val customUserDetailService: CustomUserDetailService,
