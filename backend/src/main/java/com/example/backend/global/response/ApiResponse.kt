@@ -1,9 +1,5 @@
 package com.example.backend.global.response
 
-import lombok.AccessLevel
-import lombok.Builder
-import lombok.Getter
-
 /**
  * ApiResponse
  * 공통 응답 객체
