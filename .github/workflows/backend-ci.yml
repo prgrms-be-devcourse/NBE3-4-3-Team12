@@ -8,7 +8,6 @@ on: # 워크플로우가 트리거되는 이벤트를 정의
     branches: [ main , kotlin-migration, 'feature/*' ]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'  # 워크플로우 파일 자체가 변경되어도 실행
   pull_request:
     branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
     paths:
@@ -26,6 +25,7 @@ jobs: #workflow에서 실행 작업들 모음
 
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3 # JDK를 설정(미리 제공)
         with: # 버전들
