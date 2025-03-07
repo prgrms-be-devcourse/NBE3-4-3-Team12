@@ -31,7 +31,5 @@ class VoteTest {
         assertEquals(address, vote.address)
         assertEquals(latitude, vote.latitude)
         assertEquals(longitude, vote.longitude)
-//        assertNull(vote.createdAt)
-//        assertNull(vote.modifiedAt)
     }
 }
