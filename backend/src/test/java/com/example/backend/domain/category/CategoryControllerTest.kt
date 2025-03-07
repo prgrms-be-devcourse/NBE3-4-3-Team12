@@ -76,7 +76,6 @@ class CategoryControllerTest {
 
     @BeforeEach
     fun setUp() {
-
         val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
         adminRepository.save(admin)
         memberRepository.deleteAll()
@@ -114,9 +113,41 @@ class CategoryControllerTest {
         """)
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
+
         resultActions.andExpect(status().isOk)
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.type").value("HOBBY"))
             .andExpect(jsonPath("$.name").value("새로운 취미 카테고리"))
+    }
+
+    @Test
+    @DisplayName("카테고리 전체 조회")
+    fun listCategoriesTest() {
+        val resultActions: ResultActions = mvc.perform(
+            get("/categories")
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(CategoryController::class.java))
+            .andExpect(handler().methodName("listCategories"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
+    }
+
+    @Test
+    @DisplayName("카테고리 특정 조회")
+    fun getCategoryTest() {
+
+        val resultActions: ResultActions = mvc.perform(
+            get("/categories/{id}", 1L)
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(CategoryController::class.java))
+            .andExpect(handler().methodName("getCategory"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(1L))
+            .andExpect(jsonPath("$.type").isNotEmpty())
+            .andExpect(jsonPath("$.name").isNotEmpty())
     }
 }
