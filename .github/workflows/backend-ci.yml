@@ -22,7 +22,6 @@ jobs: #workflow에서 실행 작업들 모음
 
     env:
       SPRING_PROFILES_ACTIVE: test # application-test.yml 프로필 사용
-
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
 
