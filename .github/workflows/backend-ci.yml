@@ -38,6 +38,8 @@ jobs: #workflow에서 실행 작업들 모음
           key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: Build with Gradle
+        run: ./gradlew build
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
