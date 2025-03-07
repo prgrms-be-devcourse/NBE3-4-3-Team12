@@ -102,7 +102,7 @@ class MemberAuthFilter(
 
         return !(
                 (path == "/groups/member" && method == "GET") ||
-                (path == "/groups/location" && method == "GET") ||
+                        (path == "/groups/location" && method == "GET") ||
                         (path.startsWith("/groups") && method in setOf("POST", "PUT", "DELETE")) ||
                         path.startsWith("/members") ||
                         path.startsWith("/votes") ||
