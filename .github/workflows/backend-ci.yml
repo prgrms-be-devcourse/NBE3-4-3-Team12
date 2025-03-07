@@ -8,7 +8,6 @@ on: # 워크플로우가 트리거되는 이벤트를 정의
     branches: [ main , kotlin-migration, 'feature/*' ]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'  # 워크플로우 파일 자체가 변경되어도 실행
   pull_request:
     branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
     paths:
@@ -21,6 +20,8 @@ jobs: #workflow에서 실행 작업들 모음
       run: # 모든 명령어가 실행될 기본 디렉토리
         working-directory: ./backend
 
+#    env:
+#      SPRING_PROFILES_ACTIVE: test # application-test.yml 프로필 사용
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
 
@@ -44,35 +45,13 @@ jobs: #workflow에서 실행 작업들 모음
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build
 
-      - name: Run tests with environment variables
-        run: ./gradlew test --info --stacktrace
+      - name: Run tests
+        run: ./gradlew test
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;MODE=MySQL;
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-          SPRING_DATASOURCE_USERNAME: sa
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-          SPRING_SECURITY_JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          SPRING_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: 216000
-          SPRING_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: 518400
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI: http://localhost:8080/auth/kakao/callback
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_AUTHORIZATION_GRANT_TYPE: authorization_code
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_SCOPE: profile_nickname,profile_image,account_email
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_AUTHORIZATION_URI: https://kauth.kakao.com/oauth/authorize
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_TOKEN_URI: https://kauth.kakao.com/oauth/token
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_INFO_URI: https://kapi.kakao.com/v2/user/me
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_NAME_ATTRIBUTE: id
-          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
-          KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
-          KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/callback/
-          CLIENT_BASE_URL: http://localhost:3000
-            --info --stacktrace
-
-      - name: Test with Gradle
-        run: ./gradlew test --info #  --info 플래그를 추가하여 더 자세한 로그 출력
 
 #name: Simple Test
 #
