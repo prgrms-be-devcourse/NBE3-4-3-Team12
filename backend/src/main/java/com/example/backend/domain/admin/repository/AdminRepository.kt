@@ -6,8 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface AdminRepository : JpaRepository<Admin, Long> {
-
     fun findByAdminName(adminName: String): Admin?
-
-    fun findByRefreshToken(refreshToken: String): Admin?
 }
