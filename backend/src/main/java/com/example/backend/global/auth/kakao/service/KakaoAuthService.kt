@@ -87,7 +87,6 @@ class KakaoAuthService(
     fun login(kakaoId: Long, kakaoTokenDto: KakaoTokenResponseDto): LoginResponseDto {
 
         val member = memberService.findByKakaoId(kakaoId)
-        member.updateAccessToken(kakaoTokenDto.accessToken)
         member.updateRefreshToken(kakaoTokenDto.refreshToken!!)
 
         val accessToken = tokenProvider.generateMemberAccessToken(
@@ -103,7 +102,6 @@ class KakaoAuthService(
     fun existsMemberByKakaoId(kakaoId: Long): Boolean =
         memberService.existsByKakaoId(kakaoId)
 
-
     fun join(kakaoUserInfoDto: KakaoUserInfoResponseDto) {
         memberService.join(kakaoUserInfoDto)
     }
@@ -112,7 +110,6 @@ class KakaoAuthService(
     fun logout(userId: Long, response: HttpServletResponse) {
         cookieService.clearTokenFromCookie(response)
         val member = memberService.findById(userId)
-        member.updateAccessToken("")
         member.updateRefreshToken("")
 
         SecurityContextHolder.clearContext()
@@ -136,14 +133,11 @@ class KakaoAuthService(
                 Mono.error(KakaoAuthException(KakaoAuthErrorCode.KAKAO_SERVER_ERROR))
             }
             .bodyToMono(KakaoTokenResponseDto::class.java)
-            .block()
+            .block() ?: throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_REISSUE_FAILED)
 
-        // dto에 토큰정보가 담겨있지 않을 시 예외 반환 및 리프레시 토큰은 body에 있을 경우에만 갱신
-        if (kakaoTokenDto != null) {
-            member.updateAccessToken(kakaoTokenDto.accessToken)
-            if (kakaoTokenDto.refreshToken != null) {
-                member.updateRefreshToken(kakaoTokenDto.refreshToken)
-            }
+        // 리프레시 토큰은 body에 있을 경우에만 갱신
+        if (kakaoTokenDto.refreshToken != null) {
+            member.updateRefreshToken(kakaoTokenDto.refreshToken)
         } else {
             throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_REISSUE_FAILED)
         }

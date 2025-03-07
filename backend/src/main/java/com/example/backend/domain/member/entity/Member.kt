@@ -18,9 +18,6 @@ class Member(
     var id: Long? = null
         protected set
 
-    @Column(name = "kakao_access_token")
-    var kakaoAccessToken: String = ""
-
     @Column(name = "kakao_refresh_token")
     var kakaoRefreshToken: String = ""
 
@@ -32,10 +29,6 @@ class Member(
                 email = kakaoUserInfoDto.kakaoAccount.email
             )
         }
-    }
-
-    fun updateAccessToken(accessToken: String) {
-        this.kakaoAccessToken = accessToken
     }
 
     fun updateRefreshToken(refreshToken: String) {
