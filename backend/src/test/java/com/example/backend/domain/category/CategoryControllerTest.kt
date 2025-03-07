@@ -207,4 +207,29 @@ class CategoryControllerTest {
             .andExpect(handler().methodName("deleteCategory"))
             .andExpect(status().isOk)
     }
+
+    @Test
+    @DisplayName("존재하지 않는 id의 카테고리 조회")
+    fun getCategoryNotFoundTest() {
+        val resultActions: ResultActions = mvc.perform(
+            get("/categories/{id}", 100L)
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(status().isNotFound)
+    }
+
+    @Test
+    @DisplayName("카테고리 목록이 없을 때 조회")
+    fun getCategoryListEmptyTest() {
+        categoryRepository.deleteAll()
+
+        val resultActions: ResultActions = mvc.perform(
+            get("/categories")
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(status().isNotFound)
+    }
+
 }
