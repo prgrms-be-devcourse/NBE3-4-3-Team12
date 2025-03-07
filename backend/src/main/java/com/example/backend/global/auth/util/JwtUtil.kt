@@ -1,11 +1,11 @@
 
 package com.example.backend.global.auth.util;
 
-import com.example.backend.domain.admin.service.AdminGetService
 import com.example.backend.domain.member.dto.MemberInfoDto
 import com.example.backend.global.auth.exception.AuthErrorCode
 import com.example.backend.global.auth.exception.AuthException
 import com.example.backend.global.auth.jwt.TokenStatus
+import com.example.backend.global.redis.service.RedisService
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -18,7 +18,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.security.Key
-import java.time.LocalDateTime
 
 /**
  * JwtUtil
@@ -27,7 +26,7 @@ import java.time.LocalDateTime
  */
 @Component
 class JwtUtil(
-	private val adminGetService: AdminGetService,
+	private val redisService: RedisService,
 	@Value("\${spring.security.jwt.secret-key}")
 	private val secretKey: String,
 	@Value("\${spring.security.jwt.access-token.expiration}")
@@ -83,9 +82,10 @@ class JwtUtil(
 		)
 	}
 
-	fun isRefreshTokenValid(refreshToken: String): Boolean {
-		val admin = adminGetService.getAdminByRefreshToken(refreshToken)
-		return admin.refreshTokenExpiryDate?.isAfter(LocalDateTime.now())
-			?: throw AuthException(AuthErrorCode.TOKEN_EXPIRED)
+	fun isRefreshTokenValid(refreshToken: String) {
+		if (redisService.exists(refreshToken)) {
+			return
+		}
+		throw AuthException(AuthErrorCode.TOKEN_EXPIRED)
 	}
 }
