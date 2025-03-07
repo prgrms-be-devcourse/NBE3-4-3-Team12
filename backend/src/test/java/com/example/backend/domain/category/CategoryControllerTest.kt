@@ -43,12 +43,10 @@ class CategoryControllerTest {
     private lateinit var memberRepository: MemberRepository
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
-//    @Autowired
-//    private lateinit var mvc: MockMvc
     @PersistenceContext
     private lateinit var em: EntityManager
 
-    private fun loginAndGetResponse(): ResultActions {
+    private fun loginAndGetTokens(): Pair<String, String> {
         val loginRequestJson = """
             {
                 "adminName": "admin",
@@ -56,11 +54,21 @@ class CategoryControllerTest {
             }
         """.trimIndent()
 
-        return mockMvc.perform(
+        val loginResponse = mockMvc.perform(
             post("/admin/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(loginRequestJson)
-        )
+        ).andDo(print())
+
+        loginResponse.andExpect(status().isOk)
+
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
+
+        assertNotNull(accessToken, "Access Token이 null입니다.")
+        assertNotNull(refreshToken, "Refresh Token이 null입니다.")
+
+        return Pair(accessToken!!, refreshToken!!)
     }
 
     @BeforeEach
@@ -81,15 +89,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 생성")
     fun createCategoryTest() {
-        val loginResponse = loginAndGetResponse()
-        loginResponse.andExpect(status().isOk)
-
-        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
-        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
-
-        assertNotNull(accessToken)
-        assertNotNull(refreshToken)
-
+        val (accessToken, refreshToken) = loginAndGetTokens()
         val resultActions: ResultActions = mockMvc.perform(
             post("/categories")
                 .cookie(Cookie("accessToken", accessToken))
@@ -142,15 +142,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 수정")
     fun modifyCategoryTest() {
-        val loginResponse = loginAndGetResponse()
-        loginResponse.andExpect(status().isOk)
-
-        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
-        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
-
-        assertNotNull(accessToken)
-        assertNotNull(refreshToken)
-
+        val (accessToken, refreshToken) = loginAndGetTokens()
         val resultActions: ResultActions = mockMvc.perform(
             put("/categories/{id}", 1L)
                 .cookie(Cookie("accessToken", accessToken))
@@ -175,15 +167,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 삭제")
     fun deleteCategoryTest() {
-        val loginResponse = loginAndGetResponse()
-        loginResponse.andExpect(status().isOk)
-
-        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
-        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
-
-        assertNotNull(accessToken)
-        assertNotNull(refreshToken)
-
+        val (accessToken, refreshToken) = loginAndGetTokens()
         val resultActions: ResultActions = mockMvc.perform(
             delete("/categories/{id}", 1L)
                 .cookie(Cookie("accessToken", accessToken))
