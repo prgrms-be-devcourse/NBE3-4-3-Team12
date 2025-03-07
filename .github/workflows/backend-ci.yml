@@ -8,7 +8,6 @@ on: # 워크플로우가 트리거되는 이벤트를 정의
     branches: [ main , kotlin-migration, 'feature/*' ]
     paths:
       - 'backend/**'
-      - '.github/workflows/**'  # 워크플로우 파일 자체가 변경되어도 실행
   pull_request:
     branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
     paths:
@@ -21,20 +20,11 @@ jobs: #workflow에서 실행 작업들 모음
       run: # 모든 명령어가 실행될 기본 디렉토리
         working-directory: ./backend
 
-    # Redis 서비스 추가
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+#    env:
+#      SPRING_PROFILES_ACTIVE: test # application-test.yml 프로필 사용
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3 # JDK를 설정(미리 제공)
         with: # 버전들
@@ -55,58 +45,21 @@ jobs: #workflow에서 실행 작업들 모음
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build
 
-      - name: Run tests with environment variables
-        run: ./gradlew test --info --stacktrace
+      - name: Run tests with detailed logging
+        run: ./gradlew test --debug --info
         env:
-          SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;MODE=MySQL;
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-          SPRING_DATASOURCE_USERNAME: sa
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-          SPRING_DATA_REDIS_HOST: localhost
-          SPRING_DATA_REDIS_PORT: 6379
-          SPRING_SECURITY_JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          SPRING_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: 216000
-          SPRING_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: 518400
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI: http://localhost:8080/auth/kakao/callback
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_AUTHORIZATION_GRANT_TYPE: authorization_code
-          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_SCOPE: profile_nickname,profile_image,account_email
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_AUTHORIZATION_URI: https://kauth.kakao.com/oauth/authorize
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_TOKEN_URI: https://kauth.kakao.com/oauth/token
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_INFO_URI: https://kapi.kakao.com/v2/user/me
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_NAME_ATTRIBUTE: id
-          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
-          KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
-          KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/callback/
-          CLIENT_BASE_URL: http://localhost:3000
+          SPRING_PROFILES_ACTIVE: test#  --info 플래그를 추가하여 더 자세한 로그 출력
 
-      # JaCoCo 테스트 커버리지 보고서 생성
-      - name: Generate JaCoCo Test Coverage Report
-        run: ./gradlew jacocoTestReport
-
-      # 테스트 커버리지 검증
-      - name: Verify Test Coverage
-        run: ./gradlew jacocoTestCoverageVerification || true  # 커버리지가 낮아도 빌드 실패하지 않음
-
-      - name: Test with Gradle
-        run: ./gradlew test
-      # 커버리지 보고서를 아티팩트로 업로드
-      - name: Upload JaCoCo Test Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: backend/build/reports/jacoco/test/html/
-
-      # 선택 사항: 커버리지 결과를 PR 코멘트에 추가 (선택적)
-      - name: Comment Test Coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: madrapps/jacoco-report@v1.3
-        with:
-          paths: backend/build/reports/jacoco/test/jacocoTestReport.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 40
-          min-coverage-changed-files: 60
-          title: '📊 컨트롤러 테스트 커버리지 리포트'
+#name: Simple Test
+#
+#on: push
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Run a simple command
+#        run: echo "Hello, GitHub Actions!"
