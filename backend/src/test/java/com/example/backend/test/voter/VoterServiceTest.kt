@@ -27,7 +27,6 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class VoterServiceTest {
-
 	@InjectMocks
 	private lateinit var voterService: VoterService
 
