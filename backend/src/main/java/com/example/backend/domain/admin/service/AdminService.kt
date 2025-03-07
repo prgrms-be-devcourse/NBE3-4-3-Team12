@@ -6,6 +6,7 @@ import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.TokenProvider
+import com.example.backend.global.redis.service.RedisService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -14,17 +15,18 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AdminService(
-    private val adminGetService: AdminGetService,
     private val adminRepository: AdminRepository,
     private val passwordEncoder: PasswordEncoder,
     private val cookieService: CookieService,
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
+    private val redisService: RedisService
 ) {
 
     // 로그인 검증
     @Transactional(readOnly = true)
     fun getAdmin(adminName: String, password: String): Admin {
-        val admin: Admin = adminGetService.getAdminByName(adminName)
+        val admin: Admin = adminRepository.findByAdminName(adminName)
+            ?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
 
         if (!passwordEncoder.matches(password, admin.password)) {
             throw AdminException(AdminErrorCode.INVALID_CREDENTIALS)
@@ -46,8 +48,7 @@ class AdminService(
         val refreshToken = tokenProvider.generateRefreshToken()
         val expiryDate = tokenProvider.getRefreshTokenExpiryDate()
 
-        admin.setRefreshToken(refreshToken, expiryDate)
-        adminRepository.save(admin)
+        redisService.save(refreshToken, admin.adminName, expiryDate)
         cookieService.addRefreshTokenToCookie(refreshToken, response)
     }
 
@@ -58,9 +59,7 @@ class AdminService(
 
         val refreshToken = cookieService.getRefreshTokenFromCookie(request)
         if (refreshToken != null) {
-            val admin = adminGetService.getAdminByRefreshToken(refreshToken)
-            admin.setRefreshToken(null, null)
-            adminRepository.save(admin)
+            redisService.delete(refreshToken)
         } else  {
             throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
         }

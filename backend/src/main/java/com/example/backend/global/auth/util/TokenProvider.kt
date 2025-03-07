@@ -4,9 +4,8 @@ import com.example.backend.domain.admin.entity.Admin
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.stereotype.Component
-import java.time.Duration
-import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Component
 class TokenProvider(
@@ -41,7 +40,7 @@ class TokenProvider(
 	}
 
 	// 리프레시 토큰 만료 시간 계산
-	fun getRefreshTokenExpiryDate(): LocalDateTime {
-		return LocalDateTime.now().plus(Duration.ofMillis(jwtUtil.getRefreshTokenExpirationTime()))
+	fun getRefreshTokenExpiryDate(): Long {
+		return TimeUnit.MILLISECONDS.toSeconds(jwtUtil.getRefreshTokenExpirationTime())
 	}
 }
