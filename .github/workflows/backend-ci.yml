@@ -47,10 +47,11 @@ jobs: #workflow에서 실행 작업들 모음
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Run tests with detailed logging
-        run: ./gradlew test --debug --info
+      - name: Run tests
+        run: ./gradlew test
         env:
-          SPRING_PROFILES_ACTIVE: test#  --info 플래그를 추가하여 더 자세한 로그 출력
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
 #name: Simple Test
 #

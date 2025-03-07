@@ -23,7 +23,6 @@ class VoteTest {
             latitude = latitude,
             longitude = longitude
         )
-
         // Then
         assertNull(vote.id)
         assertEquals(groupId, vote.groupId)
