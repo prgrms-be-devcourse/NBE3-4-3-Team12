@@ -32,7 +32,7 @@ spring:
       access-token:
         expiration: 21600000
       refresh-token:
-        expiration: 51840000
+        expiration: 5184000000
 
 logging:
   level:
