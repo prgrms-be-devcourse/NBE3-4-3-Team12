@@ -3,15 +3,10 @@ package com.example.backend.test.category
 import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.domain.category.controller.CategoryController
-import com.example.backend.domain.category.dto.CategoryRequestDto
-import com.example.backend.domain.category.dto.CategoryResponseDto
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
-import com.example.backend.domain.category.service.CategoryService
-import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
-import com.example.backend.global.util.TestTokenProvider
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
@@ -47,17 +42,11 @@ class CategoryControllerTest {
     @Autowired
     private lateinit var memberRepository: MemberRepository
     @Autowired
-    private lateinit var categoryService: CategoryService
-    @Autowired
-    private lateinit var tokenProvider: TestTokenProvider
-    @Autowired
     private lateinit var categoryRepository: CategoryRepository
     @Autowired
     private lateinit var mvc: MockMvc
     @PersistenceContext
     private lateinit var em: EntityManager
-
-    private lateinit var accessToken: String
 
     private fun loginAndGetResponse(): ResultActions {
         val loginRequestJson = """
@@ -231,5 +220,4 @@ class CategoryControllerTest {
 
         resultActions.andExpect(status().isNotFound)
     }
-
 }
