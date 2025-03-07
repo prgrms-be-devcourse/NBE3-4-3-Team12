@@ -90,7 +90,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("category creation")
+    @DisplayName("카테고리 생성")
     fun createCategoryTest() {
         val loginResponse = loginAndGetResponse()
         loginResponse.andExpect(status().isOk)
@@ -137,7 +137,6 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 특정 조회")
     fun getCategoryTest() {
-
         val resultActions: ResultActions = mvc.perform(
             get("/categories/{id}", 1L)
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
@@ -149,5 +148,38 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.id").value(1L))
             .andExpect(jsonPath("$.type").isNotEmpty())
             .andExpect(jsonPath("$.name").isNotEmpty())
+    }
+
+    @Test
+    @DisplayName("카테고리 수정")
+    fun modifyCategoryTest() {
+        val loginResponse = loginAndGetResponse()
+        loginResponse.andExpect(status().isOk)
+
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
+
+        assertNotNull(accessToken)
+        assertNotNull(refreshToken)
+
+        val resultActions: ResultActions = mvc.perform(
+            put("/categories/{id}", 1L)
+                .cookie(Cookie("accessToken", accessToken))
+                .cookie(Cookie("refreshToken", refreshToken))
+                .content("""
+                    {
+                        "type": "EXERCISE",
+                        "name": "수정된 카테고리"
+                    }
+                """)
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(CategoryController::class.java))
+            .andExpect(handler().methodName("modifyCategory"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(1L))
+            .andExpect(jsonPath("$.type").value("EXERCISE"))
+            .andExpect(jsonPath("$.name").value("수정된 카테고리"))
     }
 }
