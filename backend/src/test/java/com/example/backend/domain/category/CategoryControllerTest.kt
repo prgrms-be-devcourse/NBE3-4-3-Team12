@@ -182,4 +182,29 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.type").value("EXERCISE"))
             .andExpect(jsonPath("$.name").value("수정된 카테고리"))
     }
+
+    @Test
+    @DisplayName("카테고리 삭제")
+    fun deleteCategoryTest() {
+        val loginResponse = loginAndGetResponse()
+        loginResponse.andExpect(status().isOk)
+
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
+
+        assertNotNull(accessToken)
+        assertNotNull(refreshToken)
+
+        val resultActions: ResultActions = mvc.perform(
+            delete("/categories/{id}", 1L)
+                .cookie(Cookie("accessToken", accessToken))
+                .cookie(Cookie("refreshToken", refreshToken))
+
+                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        ).andDo(print())
+
+        resultActions.andExpect(handler().handlerType(CategoryController::class.java))
+            .andExpect(handler().methodName("deleteCategory"))
+            .andExpect(status().isOk)
+    }
 }
