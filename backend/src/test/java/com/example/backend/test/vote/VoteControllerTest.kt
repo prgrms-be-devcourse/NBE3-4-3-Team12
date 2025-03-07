@@ -52,7 +52,7 @@ class VoteControllerTest {
     @BeforeEach // 각 테스트 메서드가 실행되기 전에 매번 실행
     fun setUp() {
         // ObjectMapper에 JavaTimeModule 등록
-        objectMapper.registerModule(JavaTimeModule())
+//        objectMapper.registerModule(JavaTimeModule())
 
         // 테스트 데이터 초기화 및 DB 재설정
         voteRepository.deleteAll()
@@ -98,6 +98,7 @@ class VoteControllerTest {
             .andExpect(jsonPath("$.address").value(voteRequestDto.address))
             .andExpect(jsonPath("$.latitude").value(voteRequestDto.latitude))
             .andExpect(jsonPath("$.longitude").value(voteRequestDto.longitude))
+            .andExpect(jsonPath("$.createdAt").exists())
     }
 
     @Test
