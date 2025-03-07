@@ -95,7 +95,7 @@ jobs: #workflow에서 실행 작업들 모음
         run: ./gradlew test
       # 커버리지 보고서를 아티팩트로 업로드
       - name: Upload JaCoCo Test Coverage Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: backend/build/reports/jacoco/test/html/
