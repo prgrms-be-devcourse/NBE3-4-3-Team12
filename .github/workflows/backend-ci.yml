@@ -48,7 +48,7 @@ jobs: #workflow에서 실행 작업들 모음
         run: ./gradlew build
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --info --stacktrace
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
