@@ -1,7 +1,5 @@
 package com.example.backend.global.exception
 
-import lombok.AllArgsConstructor
-import lombok.Getter
 import org.springframework.http.HttpStatus
 
 /**

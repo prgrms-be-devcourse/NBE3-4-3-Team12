@@ -12,6 +12,7 @@ class Category(
     @Enumerated(EnumType.STRING)
     @Column var categoryType: CategoryType
 ) {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
