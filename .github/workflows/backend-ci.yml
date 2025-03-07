@@ -91,6 +91,8 @@ jobs: #workflow에서 실행 작업들 모음
       - name: Verify Test Coverage
         run: ./gradlew jacocoTestCoverageVerification || true  # 커버리지가 낮아도 빌드 실패하지 않음
 
+      - name: Test with Gradle
+        run: ./gradlew test
       # 커버리지 보고서를 아티팩트로 업로드
       - name: Upload JaCoCo Test Coverage Report
         uses: actions/upload-artifact@v3
