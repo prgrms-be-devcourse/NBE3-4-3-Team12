@@ -77,6 +77,8 @@ class GroupControllerTest {
 
         val member = Member(1L, "testUser", "test@test.com")
         memberRepository.save(member)
+        val member2 = Member(2L, "testUser2", "test2@test.com")
+        memberRepository.save(member2)
 
         accessToken = tokenProvider.generateMemberAccessToken(
             member.id!!, member.nickname, member.email
@@ -87,18 +89,20 @@ class GroupControllerTest {
 
         for (i in 0 until 5){
             val group = Group("title$i","description$i",member,GroupStatus.RECRUITING,5)
-            val groupCategories : MutableList<GroupCategory> = categories.map { category -> GroupCategory(group,category) }.toMutableList()
+            val groupCategories : MutableList<GroupCategory> = categories.map { GroupCategory(group,category) }.toMutableList()
             group.addGroupCategories(groupCategories)
             groupRepository.save(group)
             val groupId = group.id
             val vote1 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
-            val vote2 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
-            val vote3 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
+            val vote2 = Vote(groupId = groupId!!, location = "장소2", address = "주소2", latitude = 11.11111, longitude = 11.11111)
+            val vote3 = Vote(groupId = groupId!!, location = "장소3", address = "주소3", latitude = 11.11111, longitude = 11.11111)
             voteRepository.save(vote1)
             voteRepository.save(vote2)
             voteRepository.save(vote3)
             val voter = Voter(Voter.VoterId(member.id!!,groupId),member,vote1)
+            val voter1 = Voter(Voter.VoterId(member2.id!!,groupId),member2,vote2)
             voterRepository.save(voter)
+            voterRepository.save(voter1)
             if (0<i) group.status = GroupStatus.COMPLETED
         }
     }
