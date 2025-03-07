@@ -13,7 +13,6 @@ class VoteTest {
         val address = "테스트 주소"
         val latitude = 37.5665
         val longitude = 126.9780
-
         // When
         val vote = Vote(
             groupId = groupId,
