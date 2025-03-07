@@ -72,7 +72,7 @@ jobs: #workflow에서 실행 작업들 모음
             --info --stacktrace
 
       - name: Test with Gradle
-        run: ./gradlew test
+        run: ./gradlew test --info #  --info 플래그를 추가하여 더 자세한 로그 출력
 
 #name: Simple Test
 #
