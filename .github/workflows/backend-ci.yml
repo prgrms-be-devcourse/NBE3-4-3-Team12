@@ -1,61 +1,61 @@
-#name: Backend CI # 그냥 작업 이름 특별한 이유 없고 Front CI와 구분을 위한 이름
-#
-#on: # 워크플로우가 트리거되는 이벤트를 정의
-#  push:
-#    # 특정 브랜치에 푸쉬될때
-#    # feature/ 이런식으로 기능개발을 하기 때문에 추가함
-#    # 다른 이름의  작업 브랜치를 쓰신다면 개인적으로 추가해주면 될 것 같습니다. "" 없이 브랜치 이름을 추가.
-#    branches: [ main , kotlin-migration, 'feature/*' ]
-#    paths:
-#      - 'backend/**'
-#  pull_request:
-#    branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
-#    paths:
-#      - 'backend/**'
-#
-#jobs: #workflow에서 실행 작업들 모음
-#  build:
-#    runs-on: ubuntu-latest # 실행환경 최신 우분투
-#    defaults: # 작업 내 모든 단계에 적용될 기본 설정
-#      run: # 모든 명령어가 실행될 기본 디렉토리
-#        working-directory: ./backend
-#
-#    steps: # 순차로 실행
-#      - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
-#
-#      - name: Set up JDK 21
-#        uses: actions/setup-java@v3 # JDK를 설정(미리 제공)
-#        with: # 버전들
-#          java-version: '21'
-#          distribution: 'temurin'
-#
-#      - name: Cache Gradle packages
-#        uses: actions/cache@v3 # actions/cache@v3 액션을 사용하여 빌드 속도를 향상시키기 위해 캐싱
-#        with:
-#          path: |
-#            ~/.gradle/caches
-#            ~/.gradle/wrapper
-#          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
-#          restore-keys: |
-#            ${{ runner.os }}-gradle-
-#
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x gradlew
-#
-#      - name: Build with Gradle
-#        run: ./gradlew build
-#
-#      - name: Test with Gradle
-#        run: ./gradlew test
+name: Backend CI # 그냥 작업 이름 특별한 이유 없고 Front CI와 구분을 위한 이름
 
-name: Simple Test
+on: # 워크플로우가 트리거되는 이벤트를 정의
+  push:
+    # 특정 브랜치에 푸쉬될때
+    # feature/ 이런식으로 기능개발을 하기 때문에 추가함
+    # 다른 이름의  작업 브랜치를 쓰신다면 개인적으로 추가해주면 될 것 같습니다. "" 없이 브랜치 이름을 추가.
+    branches: [ main , kotlin-migration, 'feature/*' ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
+    paths:
+      - 'backend/**'
 
-on: push
+jobs: #workflow에서 실행 작업들 모음
+  build:
+    runs-on: ubuntu-latest # 실행환경 최신 우분투
+    defaults: # 작업 내 모든 단계에 적용될 기본 설정
+      run: # 모든 명령어가 실행될 기본 디렉토리
+        working-directory: ./backend
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run a simple command
-        run: echo "Hello, GitHub Actions!"
+    steps: # 순차로 실행
+      - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3 # JDK를 설정(미리 제공)
+        with: # 버전들
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3 # actions/cache@v3 액션을 사용하여 빌드 속도를 향상시키기 위해 캐싱
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Test with Gradle
+        run: ./gradlew test
+
+#name: Simple Test
+#
+#on: push
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Run a simple command
+#        run: echo "Hello, GitHub Actions!"
