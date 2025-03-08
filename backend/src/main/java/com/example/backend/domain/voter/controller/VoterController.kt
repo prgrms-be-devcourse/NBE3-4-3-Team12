@@ -42,7 +42,7 @@ class VoterController(
 	): ResponseEntity<Void> {
 		logger.info("Voter removal requested: groupId={}, voteId={}, memberId={}", groupId, voteId, customUserDetails.userId)
 		voterService.removeVoter(groupId, voteId, customUserDetails.userId)
-		return ResponseEntity.ok().build()
+		return ResponseEntity.noContent().build() // '204 No Content' 반환
 	}
 
 	@GetMapping("/group/{groupId}")
