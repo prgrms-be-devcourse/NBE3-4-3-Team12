@@ -57,11 +57,10 @@ class KakaoAuthUtil(
         return userInfoUri
     }
 
-    fun getLogoutUrl(userId: Long): String {
+    fun getLogoutUrl(): String {
         return UriComponentsBuilder.fromUriString(kakaoLogoutUrl)
             .queryParam("client_id", clientId)
             .queryParam("logout_redirect_uri", kakaoLogoutRedirectUri)
-            .queryParam("state", userId)
             .toUriString()
     }
 
