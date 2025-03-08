@@ -8,6 +8,7 @@ import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.service.CustomUserDetailService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.response.ErrorResponse.Companion.of
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
@@ -31,6 +32,7 @@ class MemberAuthFilter(
     private val cookieService: CookieService,
     private val customUserDetailService: CustomUserDetailService,
     private val kakaoAuthService: KakaoAuthService,
+    private val redisService: RedisService,
     private val jwtUtil: JwtUtil,
     private val tokenProvider: TokenProvider,
     private val objectMapper: ObjectMapper
@@ -50,7 +52,7 @@ class MemberAuthFilter(
         // 엑세스 토큰만 null일 경우 리프레쉬 토큰으로 토큰 재발급 후 인증
         if (accessToken == null) {
             if (refreshToken == null) {
-                handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), request, response)
+                handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), "", request, response)
                 return
             }
             try {
@@ -58,7 +60,7 @@ class MemberAuthFilter(
                 setAuthenticationInContext(reissuedAccessToken)
                 filterChain.doFilter(request, response)
             } catch (e: Exception) {
-                handleAuthError(AuthException(AuthErrorCode.TOKEN_REISSUE_FAILED), request, response)
+                handleAuthError(AuthException(AuthErrorCode.TOKEN_REISSUE_FAILED), refreshToken, request, response)
             }
             return
         }
@@ -79,13 +81,13 @@ class MemberAuthFilter(
 
                 TokenStatus.MALFORMED, TokenStatus.INVALID -> {
                     log.error("잘못된 형식의 토큰입니다.")
-                    handleAuthError(AuthException(AuthErrorCode.INVALID_TOKEN), request, response)
+                    handleAuthError(AuthException(AuthErrorCode.INVALID_TOKEN), refreshToken ?: "", request, response)
                     return
                 }
             }
         } catch (e: Exception) {
             log.error("필터 내부에서 예상치 못한 예외 발생: {}", e.message)
-            handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), request, response)
+            handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), refreshToken ?: "", request, response)
             return
         }
         filterChain.doFilter(request, response)
@@ -133,9 +135,10 @@ class MemberAuthFilter(
      */
     @Throws(IOException::class)
     private fun handleAuthError(
-        ex: AuthException,
+        ex: AuthException, refreshToken: String,
         request: HttpServletRequest, response: HttpServletResponse
     ) {
+        redisService.delete(refreshToken)
         cookieService.clearTokenFromCookie(response)
         SecurityContextHolder.clearContext()
 
@@ -169,16 +172,16 @@ class MemberAuthFilter(
             )
 
             cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
-            cookieService.addRefreshTokenToCookie(memberTokenReissueDto.refreshToken, response)
+            cookieService.addRefreshTokenToCookieWithSameSiteNone(memberTokenReissueDto.refreshToken, response)
 
             return reissuedAccessToken
         } catch (e: MemberException) {
             log.error("유효하지 않은 인증정보입니다.")
-            handleAuthError(AuthException(AuthErrorCode.INVALID_TOKEN), request, response)
+            handleAuthError(AuthException(AuthErrorCode.INVALID_TOKEN), refreshToken, request, response)
             throw e
         } catch (e: Exception) {
             log.error("토큰 갱신 중 오류 발생: {}", e.message)
-            handleAuthError(AuthException(AuthErrorCode.TOKEN_REISSUE_FAILED), request, response)
+            handleAuthError(AuthException(AuthErrorCode.TOKEN_REISSUE_FAILED), refreshToken, request, response)
             throw e
         }
     }

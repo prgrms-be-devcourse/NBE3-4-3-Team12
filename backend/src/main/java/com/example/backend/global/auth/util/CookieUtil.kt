@@ -31,6 +31,18 @@ class CookieUtil {
         response.addHeader("Set-Cookie", cookie.toString())
     }
 
+    fun addTokenToCookieWithSameSiteNone(name: String, value: String, expiration: Long, response: HttpServletResponse) {
+        val cookie = ResponseCookie.from(name, value)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .sameSite("None")
+            .maxAge(expiration)
+            .build()
+
+        response.addHeader("Set-Cookie", cookie.toString())
+    }
+
     /**
      * 쿠키에서 name의 토큰을 받아오는 메서드
      * @param name

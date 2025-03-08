@@ -5,6 +5,7 @@ import com.example.backend.global.auth.util.JwtUtil
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
+import java.util.concurrent.TimeUnit
 
 /**
  * CookieService
@@ -20,14 +21,23 @@ class CookieService(
     fun addAccessTokenToCookie(accessToken: String, response: HttpServletResponse) {
         cookieUtil.addTokenToCookie(
             "accessToken", accessToken,
-            jwtUtil.getAccessTokenExpirationTime(), response
+            TimeUnit.MILLISECONDS.toSeconds(jwtUtil.getAccessTokenExpirationTime()),
+            response
         )
     }
 
     fun addRefreshTokenToCookie(refreshToken: String, response: HttpServletResponse) {
         cookieUtil.addTokenToCookie(
             "refreshToken", refreshToken,
-            jwtUtil.getRefreshTokenExpirationTime(), response
+            TimeUnit.MILLISECONDS.toSeconds(jwtUtil.getRefreshTokenExpirationTime()),
+            response
+        )
+    }
+
+    fun addRefreshTokenToCookieWithSameSiteNone(refreshToken: String, response: HttpServletResponse) {
+        cookieUtil.addTokenToCookieWithSameSiteNone(
+            "refreshToken", refreshToken,
+            TimeUnit.MILLISECONDS.toSeconds(jwtUtil.getRefreshTokenExpirationTime()), response
         )
     }
 

@@ -8,9 +8,9 @@ import com.example.backend.global.auth.kakao.dto.LoginResponseDto
 import com.example.backend.global.auth.kakao.exception.KakaoAuthErrorCode
 import com.example.backend.global.auth.kakao.exception.KakaoAuthException
 import com.example.backend.global.auth.kakao.util.KakaoAuthUtil
-import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.TokenProvider
-import jakarta.servlet.http.HttpServletResponse
+import com.example.backend.global.redis.service.RedisService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import java.util.concurrent.TimeUnit
 
 /**
  * KakaoAuthService
@@ -31,7 +32,9 @@ class KakaoAuthService(
     private val webClient: WebClient,
     private val tokenProvider: TokenProvider,
     private val memberService: MemberService,
-    private val cookieService: CookieService
+    private val redisService: RedisService,
+    @Value("\${spring.security.jwt.refresh-token.expiration}")
+    private val refreshTokenExpirationTime: Long
 ) {
 
     fun getKakaoAuthorizationUrl(): String = kakaoAuthUtil.getKakaoAuthorizationUrl()
@@ -87,7 +90,10 @@ class KakaoAuthService(
     fun login(kakaoId: Long, kakaoTokenDto: KakaoTokenResponseDto): LoginResponseDto {
 
         val member = memberService.findByKakaoId(kakaoId)
-        member.updateRefreshToken(kakaoTokenDto.refreshToken!!)
+        val refreshToken = kakaoTokenDto.refreshToken
+            ?: throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_NOT_FOUND)
+
+        saveRefreshToken(refreshToken, member.id!!)
 
         val accessToken = tokenProvider.generateMemberAccessToken(
             member.id!!, member.nickname, member.email
@@ -96,8 +102,8 @@ class KakaoAuthService(
         return LoginResponseDto(member.nickname, accessToken, kakaoTokenDto.refreshToken)
     }
 
-    fun getKakaoLogoutUrl(userId: Long): String =
-        kakaoAuthUtil.getLogoutUrl(userId)
+    fun getKakaoLogoutUrl(): String =
+        kakaoAuthUtil.getLogoutUrl()
 
     fun existsMemberByKakaoId(kakaoId: Long): Boolean =
         memberService.existsByKakaoId(kakaoId)
@@ -107,21 +113,29 @@ class KakaoAuthService(
     }
 
     @Transactional
-    fun logout(userId: Long, response: HttpServletResponse) {
-        cookieService.clearTokenFromCookie(response)
-        val member = memberService.findById(userId)
-        member.updateRefreshToken("")
+    fun logout(refreshToken: String?) {
+        // 리프레시 토큰이 존재하면 삭제
+        refreshToken?.let { redisService.delete(refreshToken.toString()) }
 
         SecurityContextHolder.clearContext()
     }
 
     @Transactional
     fun reissueTokens(refreshToken: String): MemberTokenReissueDto {
-        val member = memberService.findByKakaoRefreshToken(refreshToken)
+
+        val rawKakaoMemberId = redisService.get(refreshToken)
+            ?: throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_REISSUE_FAILED)
+
+        val kakaoMemberId = rawKakaoMemberId
+            .substringAfter("kakao: ").trim().toLong()
+
+        val memberInfoDto = memberService.findMemberInfoDtoById(kakaoMemberId)
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.valueOf("application/x-www-form-urlencoded;charset=utf-8")
 
+        // 카카오 서버에 리프레시 토큰을 사용하여 새로운 엑세스 토큰을 요청
+        // 현재 리프레시 토큰이 유효한 상태인지 검증
         val kakaoTokenDto = webClient.post()
             .uri(kakaoAuthUtil.getKakaoTokenReissueUrl(refreshToken))
             .headers { it.addAll(headers) }
@@ -137,11 +151,20 @@ class KakaoAuthService(
 
         // 리프레시 토큰은 body에 있을 경우에만 갱신
         if (kakaoTokenDto.refreshToken != null) {
-            member.updateRefreshToken(kakaoTokenDto.refreshToken)
-        } else {
-            throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_REISSUE_FAILED)
+            redisService.delete(refreshToken)
+            saveRefreshToken(kakaoTokenDto.refreshToken, kakaoMemberId)
+
+            return MemberTokenReissueDto.of(memberInfoDto, kakaoTokenDto.refreshToken)
         }
 
-        return MemberTokenReissueDto.of(member)
+        return MemberTokenReissueDto.of(memberInfoDto, refreshToken)
+    }
+
+    private fun saveRefreshToken(refreshToken: String, kakaoMemberId: Long) {
+        redisService.save(
+            refreshToken,
+            "kakao: $kakaoMemberId",
+            TimeUnit.MILLISECONDS.toSeconds(refreshTokenExpirationTime)
+        )
     }
 }
