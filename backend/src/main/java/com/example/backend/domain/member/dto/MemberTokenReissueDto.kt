@@ -14,12 +14,12 @@ data class MemberTokenReissueDto(
     val refreshToken: String
 ) {
     companion object {
-        fun of(member: Member): MemberTokenReissueDto {
+        fun of(member: Member, reIssuedRefreshToken: String): MemberTokenReissueDto {
             return MemberTokenReissueDto(
                 member.id!!,
                 member.nickname,
                 member.email,
-                member.kakaoRefreshToken
+                reIssuedRefreshToken
             )
         }
     }
