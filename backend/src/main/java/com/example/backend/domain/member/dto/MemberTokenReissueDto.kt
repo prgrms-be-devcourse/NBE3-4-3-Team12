@@ -1,7 +1,5 @@
 package com.example.backend.domain.member.dto
 
-import com.example.backend.domain.member.entity.Member
-
 /**
  * MemberTokenReissueDto
  * 토큰 갱신할 때 사용할 리프레시토큰까지 갖는 Dto
@@ -14,11 +12,11 @@ data class MemberTokenReissueDto(
     val refreshToken: String
 ) {
     companion object {
-        fun of(member: Member, reIssuedRefreshToken: String): MemberTokenReissueDto {
+        fun of(memberInfoDto: MemberInfoDto, reIssuedRefreshToken: String): MemberTokenReissueDto {
             return MemberTokenReissueDto(
-                member.id!!,
-                member.nickname,
-                member.email,
+                memberInfoDto.id,
+                memberInfoDto.nickname,
+                memberInfoDto.email,
                 reIssuedRefreshToken
             )
         }
