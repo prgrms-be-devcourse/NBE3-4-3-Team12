@@ -19,7 +19,6 @@ import java.util.*
 class TestTokenProvider(
     private val jwtUtil: JwtUtil
 ) {
-
     fun generateMemberAccessToken(id: Long, nickname: String, email: String): String {
         return Jwts.builder()
             .setSubject(nickname) // 사용자 nickname

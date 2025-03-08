@@ -27,7 +27,6 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class VoterServiceTest {
-
 	@InjectMocks
 	private lateinit var voterService: VoterService
 
@@ -58,7 +57,6 @@ class VoterServiceTest {
 
 	@BeforeEach
 	fun setUp() {
-
 		// Mock 동작 설정: save() 호출 시 실제 객체 반환
 		`when`(memberRepository.save(any())).thenAnswer { it.arguments[0] as Member }
 		`when`(voteRepository.save(any())).thenAnswer { it.arguments[0] as Vote }

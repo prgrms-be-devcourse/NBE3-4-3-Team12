@@ -14,7 +14,6 @@ class VoteTest {
         val address = "테스트 주소"
         val latitude = 37.5665
         val longitude = 126.9780
-
         // When
         val vote = Vote(
             groupId = groupId,
@@ -23,7 +22,6 @@ class VoteTest {
             latitude = latitude,
             longitude = longitude
         )
-
         // Then
         assertNull(vote.id)
         assertEquals(groupId, vote.groupId)
@@ -31,7 +29,5 @@ class VoteTest {
         assertEquals(address, vote.address)
         assertEquals(latitude, vote.latitude)
         assertEquals(longitude, vote.longitude)
-//        assertNull(vote.createdAt)
-//        assertNull(vote.modifiedAt)
     }
 }
