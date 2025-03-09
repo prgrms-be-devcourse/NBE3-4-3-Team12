@@ -20,8 +20,7 @@ jobs: #workflow에서 실행 작업들 모음
     defaults: # 작업 내 모든 단계에 적용될 기본 설정
       run: # 모든 명령어가 실행될 기본 디렉토리
         working-directory: ./backend
-#    env:
-#      SPRING_PROFILES_ACTIVE: test # application-test.yml 프로필 사용
+
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
       - name: Set up JDK 21
@@ -40,60 +39,33 @@ jobs: #workflow에서 실행 작업들 모음
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Create test configuration file
-        run: |
-          cat > src/main/resources/application-test.yml << 'EOF'
-          spring:
-            datasource:
-              url: jdbc:h2:mem:testdb;MODE=MySQL;
-              driverClassName: org.h2.Driver
-              username: sa
-            jpa:
-              hibernate:
-                ddl-auto: create-drop
-            security:
-              oauth2:
-                client:
-                  registration:
-                    kakao:
-                      client-id: ${{ secrets.KAKAO_CLIENT_ID }}
-                      redirect-uri: http://localhost:8080/auth/kakao/callback
-                      authorization-grant-type: authorization_code
-                      scope: profile_nickname,profile_image,account_email
-                  provider:
-                    kakao:
-                      authorization-uri: https://kauth.kakao.com/oauth/authorize
-                      token-uri: https://kauth.kakao.com/oauth/token
-                      user-info-uri: https://kapi.kakao.com/v2/user/me
-                      user-name-attribute: id
-              jwt:
-                secret-key: "${{ secrets.JWT_SECRET_KEY }}"
-                access-token:
-                  expiration: 216000
-                refresh-token:
-                  expiration: 518400
-
-          logging:
-            level:
-              org:
-                springframework:
-                  security: DEBUG
-
-          kakao:
-            logout-url: https://kauth.kakao.com/oauth/logout
-            logout-redirect-uri: http://localhost:8080/auth/kakao/logout/callback
-          client:
-            base-url: http://localhost:3000
-          EOF
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
-      - name: Run tests
-        run: ./gradlew test --info --stacktrace
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      - name: Run tests with system properties
+        run: |
+          ./gradlew test \
+            -Dspring.profiles.active=test \
+            -Dspring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL; \
+            -Dspring.datasource.driverClassName=org.h2.Driver \
+            -Dspring.datasource.username=sa \
+            -Dspring.jpa.hibernate.ddl-auto=create-drop \
+            -Dspring.security.jwt.secret-key="${{ secrets.JWT_SECRET_KEY }}" \
+            -Dspring.security.jwt.access-token.expiration=216000 \
+            -Dspring.security.jwt.refresh-token.expiration=518400 \
+            -Dspring.security.oauth2.client.registration.kakao.client-id="${{ secrets.KAKAO_CLIENT_ID }}" \
+            -Dspring.security.oauth2.client.registration.kakao.redirect-uri=http://localhost:8080/auth/kakao/callback \
+            -Dspring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code \
+            -Dspring.security.oauth2.client.registration.kakao.scope=profile_nickname,profile_image,account_email \
+            -Dspring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize \
+            -Dspring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token \
+            -Dspring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me \
+            -Dspring.security.oauth2.client.provider.kakao.user-name-attribute=id \
+            -Dlogging.level.org.springframework.security=DEBUG \
+            -DKAKAO_LOGOUT_URL=https://kauth.kakao.com/oauth/logout \
+            -DKAKAO_LOGOUT_REDIRECT_URI=http://localhost:8080/auth/kakao/callback/ \
+            -DCLIENT_BASE_URL=http://localhost:3000 \
+            --info --stacktrace
