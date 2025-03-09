@@ -8,6 +8,7 @@ on: # 워크플로우가 트리거되는 이벤트를 정의
     branches: [ main , kotlin-migration, 'feature/*' ]
     paths:
       - 'backend/**'
+      - '.github/workflows/**'  # 워크플로우 파일 자체가 변경되어도 실행
   pull_request:
     branches: [ main ] # upstream master(여기서는 main)에 pr날릴때
     paths:
@@ -40,6 +41,50 @@ jobs: #workflow에서 실행 작업들 모음
           key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Create test configuration file
+        run: |
+          cat > src/main/resources/application-test.yml << EOF
+          spring:
+            datasource:
+              url: jdbc:h2:mem:testdb;MODE=MySQL;
+              driverClassName: org.h2.Driver
+              username: sa
+            jpa:
+              hibernate:
+                ddl-auto: create-drop
+            security:
+              oauth2:
+                client:
+                  registration:
+                    kakao:
+                      client-id: ${{ secrets.KAKAO_CLIENT_ID }}
+                      redirect-uri: http://localhost:8080/auth/kakao/callback
+                      authorization-grant-type: authorization_code
+                      scope: profile_nickname,profile_image,account_email
+                  provider:
+                    kakao:
+                      authorization-uri: https://kauth.kakao.com/oauth/authorize
+                      token-uri: https://kauth.kakao.com/oauth/token
+                      user-info-uri: https://kapi.kakao.com/v2/user/me
+                      user-name-attribute: id
+              jwt:
+                secret-key: ${{ secrets.JWT_SECRET_KEY }}
+                access-token:
+                  expiration: 216000
+                refresh-token:
+                  expiration: 518400
+
+          logging:
+            level:
+              org:
+                springframework:
+                  security: DEBUG
+
+          KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
+          KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/logout/callback
+          CLIENT_BASE_URL: http://localhost:3000
+          EOF
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
