@@ -42,7 +42,7 @@ jobs: #workflow에서 실행 작업들 모음
 
       - name: Create test configuration file
         run: |
-          cat > src/main/resources/application-test.yml << EOF
+          cat > src/main/resources/application-test.yml << 'EOF'
           spring:
             datasource:
               url: jdbc:h2:mem:testdb;MODE=MySQL;
@@ -67,7 +67,7 @@ jobs: #workflow에서 실행 작업들 모음
                       user-info-uri: https://kapi.kakao.com/v2/user/me
                       user-name-attribute: id
               jwt:
-                secret-key: ${{ secrets.JWT_SECRET_KEY }}
+                secret-key: "${{ secrets.JWT_SECRET_KEY }}"
                 access-token:
                   expiration: 216000
                 refresh-token:
@@ -95,15 +95,3 @@ jobs: #workflow에서 실행 작업들 모음
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-
-#name: Simple Test
-#
-#on: push
-#
-#jobs:
-#  test:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Run a simple command
-#        run: echo "Hello, GitHub Actions!"
