@@ -79,9 +79,11 @@ jobs: #workflow에서 실행 작업들 모음
                 springframework:
                   security: DEBUG
 
-          KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
-          KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/logout/callback
-          CLIENT_BASE_URL: http://localhost:3000
+          kakao:
+            logout-url: https://kauth.kakao.com/oauth/logout
+            logout-redirect-uri: http://localhost:8080/auth/kakao/logout/callback
+          client:
+            base-url: http://localhost:3000
           EOF
 
       - name: Grant execute permission for gradlew
