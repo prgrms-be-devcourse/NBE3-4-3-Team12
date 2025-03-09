@@ -45,27 +45,27 @@ jobs: #workflow에서 실행 작업들 모음
       - name: Build with Gradle
         run: ./gradlew build -x test
 
-      - name: Run tests with system properties
-        run: |
-          ./gradlew test \
-            -Dspring.profiles.active=test \
-            -Dspring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL; \
-            -Dspring.datasource.driverClassName=org.h2.Driver \
-            -Dspring.datasource.username=sa \
-            -Dspring.jpa.hibernate.ddl-auto=create-drop \
-            -Dspring.security.jwt.secret-key="${{ secrets.JWT_SECRET_KEY }}" \
-            -Dspring.security.jwt.access-token.expiration=216000 \
-            -Dspring.security.jwt.refresh-token.expiration=518400 \
-            -Dspring.security.oauth2.client.registration.kakao.client-id="${{ secrets.KAKAO_CLIENT_ID }}" \
-            -Dspring.security.oauth2.client.registration.kakao.redirect-uri=http://localhost:8080/auth/kakao/callback \
-            -Dspring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code \
-            -Dspring.security.oauth2.client.registration.kakao.scope=profile_nickname,profile_image,account_email \
-            -Dspring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize \
-            -Dspring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token \
-            -Dspring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me \
-            -Dspring.security.oauth2.client.provider.kakao.user-name-attribute=id \
-            -Dlogging.level.org.springframework.security=DEBUG \
-            -DKAKAO_LOGOUT_URL=https://kauth.kakao.com/oauth/logout \
-            -DKAKAO_LOGOUT_REDIRECT_URI=http://localhost:8080/auth/kakao/callback/ \
-            -DCLIENT_BASE_URL=http://localhost:3000 \
+      - name: Run tests with environment variables
+        run: ./gradlew test --info --stacktrace
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;MODE=MySQL;
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_SECURITY_JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          SPRING_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: 216000
+          SPRING_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: 518400
+          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI: http://localhost:8080/auth/kakao/callback
+          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_AUTHORIZATION_GRANT_TYPE: authorization_code
+          SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_SCOPE: profile_nickname,profile_image,account_email
+          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_AUTHORIZATION_URI: https://kauth.kakao.com/oauth/authorize
+          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_TOKEN_URI: https://kauth.kakao.com/oauth/token
+          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_INFO_URI: https://kapi.kakao.com/v2/user/me
+          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KAKAO_USER_NAME_ATTRIBUTE: id
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+          KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
+          KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/callback/
+          CLIENT_BASE_URL: http://localhost:3000
             --info --stacktrace
