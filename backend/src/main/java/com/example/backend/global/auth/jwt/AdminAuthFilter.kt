@@ -83,7 +83,14 @@ class AdminAuthFilter(
 
 	@Throws(IOException::class)
 	private fun handleException(ex: AuthErrorCode, request: HttpServletRequest, response: HttpServletResponse) {
+		val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+
+		if (!refreshToken.isNullOrEmpty()) {
+			redisService.delete(refreshToken)
+		}
 		cookieService.clearTokenFromCookie(response)
+		SecurityContextHolder.clearContext()
+
 		response.status = ex.httpStatus.value()
 		response.contentType = "application/json;charset=UTF-8"
 

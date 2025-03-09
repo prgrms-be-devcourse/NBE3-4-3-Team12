@@ -4,8 +4,10 @@ import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.exception.AdminErrorCode
 import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -21,11 +23,13 @@ class AdminRepositoryTest(
     private val adminRepository: AdminRepository
 ) {
 
-    private lateinit var admin: Admin
+    @PersistenceContext
+    private lateinit var em: EntityManager
 
-        @BeforeAll
+        @BeforeEach
         fun init() {
-            admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+            em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
+            var admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
             adminRepository.save(admin)
         }
 

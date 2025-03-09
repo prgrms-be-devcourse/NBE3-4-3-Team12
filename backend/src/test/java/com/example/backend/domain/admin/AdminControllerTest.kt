@@ -7,9 +7,13 @@ import com.example.backend.domain.group.entity.GroupStatus
 import com.example.backend.domain.group.repository.GroupRepository
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
 import org.hibernate.validator.internal.util.Contracts.assertNotNull
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -28,13 +32,15 @@ import org.springframework.transaction.annotation.Transactional
 @ActiveProfiles("test")
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AdminControllerTest(
         private val mockMvc: MockMvc,
         private val groupRepository: GroupRepository,
         private val memberRepository: MemberRepository,
         private val adminRepository: AdminRepository
 ) {
+
+    @PersistenceContext
+    private lateinit var em: EntityManager
 
     private fun loginAndGetResponse(): ResultActions {
         val loginRequestJson = """
@@ -59,8 +65,9 @@ class AdminControllerTest(
         return groupRepository.save(group).id!!
     }
 
-        @BeforeAll
+        @BeforeEach
         fun setUp() {
+            em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
             adminRepository.deleteAll()
             val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
             adminRepository.save(admin)
@@ -132,10 +139,5 @@ class AdminControllerTest(
 
         val group = groupRepository.findById(groupId).orElseThrow()
         assert(group.status == GroupStatus.DELETED)
-    }
-
-    @AfterAll
-    fun finish() {
-        adminRepository.deleteAll()
     }
 }
