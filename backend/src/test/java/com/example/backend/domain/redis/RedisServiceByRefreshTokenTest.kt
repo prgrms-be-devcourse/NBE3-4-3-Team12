@@ -1,4 +1,4 @@
-package com.example.backend.domain.admin
+package com.example.backend.domain.redis
 
 import com.example.backend.global.redis.service.RedisService
 import org.assertj.core.api.Assertions.assertThat
@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @ActiveProfiles("test")
 @SpringBootTest
-class AdminRefreshTokenRedisTest {
+class RedisServiceByRefreshTokenTest {
 
     @Autowired
     private lateinit var redisService: RedisService

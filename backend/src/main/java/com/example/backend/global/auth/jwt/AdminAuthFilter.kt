@@ -4,6 +4,7 @@ import com.example.backend.domain.admin.exception.AdminErrorCode
 import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.global.auth.exception.AuthErrorCode
+import com.example.backend.global.auth.exception.AuthException
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
@@ -53,10 +54,14 @@ class AdminAuthFilter(
 				TokenStatus.EXPIRED -> {
 					jwtUtil.isRefreshTokenValid(refreshToken)
 					val adminName = redisService.get(refreshToken)
-					val admin = adminRepository.findByAdminName(adminName!!)
+						?: throw AuthException(AuthErrorCode.INVALID_TOKEN)
+
+					val admin = adminRepository.findByAdminName(adminName)
 						?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
+
 					val newAccessToken = tokenProvider.generateToken(admin)
 					cookieService.addAccessTokenToCookie(newAccessToken, response)
+
 					val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
 					SecurityContextHolder.getContext().authentication = newAuthentication
 					chain.doFilter(request, response)
