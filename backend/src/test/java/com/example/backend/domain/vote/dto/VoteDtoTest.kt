@@ -1,6 +1,5 @@
-package com.example.backend.test.vote
+package com.example.backend.domain.vote.dto
 
-import com.example.backend.domain.vote.dto.VoteRequestDto
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

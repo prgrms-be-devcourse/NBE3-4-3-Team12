@@ -1,4 +1,4 @@
-package com.example.backend.domain.admin
+package com.example.backend.domain.admin.controller
 
 import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.repository.AdminRepository
@@ -33,10 +33,10 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class AdminControllerTest(
-        private val mockMvc: MockMvc,
-        private val groupRepository: GroupRepository,
-        private val memberRepository: MemberRepository,
-        private val adminRepository: AdminRepository
+    private val mockMvc: MockMvc,
+    private val groupRepository: GroupRepository,
+    private val memberRepository: MemberRepository,
+    private val adminRepository: AdminRepository
 ) {
 
     @PersistenceContext
@@ -51,9 +51,9 @@ class AdminControllerTest(
         """.trimIndent()
 
         return mockMvc.perform(
-                post("/admin/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginRequestJson)
+            post("/admin/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginRequestJson)
         )
     }
 
@@ -65,13 +65,12 @@ class AdminControllerTest(
         return groupRepository.save(group).id!!
     }
 
-        @BeforeEach
-        fun setUp() {
-            em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
-            adminRepository.deleteAll()
-            val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
-            adminRepository.save(admin)
-        }
+    @BeforeEach
+    fun setUp() {
+        em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
+        val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+        adminRepository.save(admin)
+    }
 
 
     @Test
@@ -80,14 +79,14 @@ class AdminControllerTest(
         val loginResponse = loginAndGetResponse()
 
         loginResponse
-                .andExpect(status().isOk)
-                .andExpect(cookie().exists("accessToken"))
-                .andExpect(cookie().exists("refreshToken"))
-                .andExpect(cookie().httpOnly("accessToken", true))
-                .andExpect(cookie().httpOnly("refreshToken", true))
-                .andExpect(cookie().secure("accessToken", true))
-                .andExpect(cookie().secure("refreshToken", true))
-                .andReturn()
+            .andExpect(status().isOk)
+            .andExpect(cookie().exists("accessToken"))
+            .andExpect(cookie().exists("refreshToken"))
+            .andExpect(cookie().httpOnly("accessToken", true))
+            .andExpect(cookie().httpOnly("refreshToken", true))
+            .andExpect(cookie().secure("accessToken", true))
+            .andExpect(cookie().secure("refreshToken", true))
+            .andReturn()
     }
 
     @Test
@@ -104,15 +103,15 @@ class AdminControllerTest(
         assertNotNull(refreshToken)
 
         val logoutResponse = mockMvc.perform(
-                post("/admin/logout")
-                        .cookie(Cookie("accessToken", accessToken))
-                        .cookie(Cookie("refreshToken", refreshToken))
+            post("/admin/logout")
+                .cookie(Cookie("accessToken", accessToken))
+                .cookie(Cookie("refreshToken", refreshToken))
         )
 
         logoutResponse
-                .andExpect(status().isOk)
-                .andExpect(cookie().value("accessToken", ""))
-                .andExpect(cookie().value("refreshToken", ""))
+            .andExpect(status().isOk)
+            .andExpect(cookie().value("accessToken", ""))
+            .andExpect(cookie().value("refreshToken", ""))
     }
 
     @Test
@@ -130,9 +129,9 @@ class AdminControllerTest(
         assertNotNull(refreshToken)
 
         val deleteGroupResponse = mockMvc.perform(
-                delete("/admin/group/$groupId")
-                        .cookie(Cookie("accessToken", accessToken))
-                        .cookie(Cookie("refreshToken", refreshToken))
+            delete("/admin/group/$groupId")
+                .cookie(Cookie("accessToken", accessToken))
+                .cookie(Cookie("refreshToken", refreshToken))
         )
 
         deleteGroupResponse.andExpect(status().isNoContent)

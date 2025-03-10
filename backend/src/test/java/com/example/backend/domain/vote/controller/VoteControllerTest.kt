@@ -1,11 +1,10 @@
-package com.example.backend.test.vote
+package com.example.backend.domain.vote.controller
 
 import com.example.backend.domain.vote.dto.VoteRequestDto
 import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
 import com.example.backend.global.util.TestTokenProvider
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
@@ -35,10 +34,11 @@ class VoteControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper // 객체를 JSON 직렬화 or JSON을 객체로 역직렬화 도구
 
-//    @Autowired
+    //    @Autowired
 //    private lateinit var voteService: VoteService
     @Autowired
     private lateinit var voteRepository: VoteRepository
+
     @Autowired
     private lateinit var tokenProvider: TestTokenProvider // 테스트용 토큰 생성용도
 
@@ -55,7 +55,6 @@ class VoteControllerTest {
 //        objectMapper.registerModule(JavaTimeModule())
 
         // 테스트 데이터 초기화 및 DB 재설정
-        voteRepository.deleteAll()
         em.createNativeQuery("ALTER TABLE vote ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
         // 테스트 사용자 인증 토큰 생성

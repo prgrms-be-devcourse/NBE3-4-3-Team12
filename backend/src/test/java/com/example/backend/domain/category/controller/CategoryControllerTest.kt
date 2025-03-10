@@ -1,8 +1,7 @@
-package com.example.backend.test.category
+package com.example.backend.domain.category.controller
 
 import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.repository.AdminRepository
-import com.example.backend.domain.category.controller.CategoryController
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,12 +35,16 @@ class CategoryControllerTest {
 
     @Autowired
     private lateinit var adminRepository: AdminRepository
+
     @Autowired
     private lateinit var mockMvc: MockMvc
+
     @Autowired
     private lateinit var memberRepository: MemberRepository
+
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
+
     @PersistenceContext
     private lateinit var em: EntityManager
 
@@ -75,7 +77,6 @@ class CategoryControllerTest {
     fun setUp() {
         val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
         adminRepository.save(admin)
-        memberRepository.deleteAll()
 
         em.createNativeQuery("ALTER TABLE \"groups\" ALTER COLUMN id RESTART WITH 1").executeUpdate()
         em.createNativeQuery("ALTER TABLE categories ALTER COLUMN id RESTART WITH 1").executeUpdate()
@@ -94,12 +95,14 @@ class CategoryControllerTest {
             post("/categories")
                 .cookie(Cookie("accessToken", accessToken))
                 .cookie(Cookie("refreshToken", refreshToken))
-                .content("""
+                .content(
+                    """
             {
                 "type": "HOBBY",
                 "name": "새로운 취미 카테고리"
             }
-        """)
+        """
+                )
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
@@ -147,12 +150,14 @@ class CategoryControllerTest {
             put("/categories/{id}", 1L)
                 .cookie(Cookie("accessToken", accessToken))
                 .cookie(Cookie("refreshToken", refreshToken))
-                .content("""
+                .content(
+                    """
                     {
                         "type": "EXERCISE",
                         "name": "수정된 카테고리"
                     }
-                """)
+                """
+                )
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 

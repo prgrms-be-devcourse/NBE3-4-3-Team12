@@ -1,8 +1,7 @@
-package com.example.backend.domain.category
+package com.example.backend.domain.category.repository
 
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
-import com.example.backend.domain.category.repository.CategoryRepository
 import org.hibernate.validator.internal.util.Contracts.assertNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

@@ -1,6 +1,5 @@
-package com.example.backend.test.vote
+package com.example.backend.domain.vote.entity
 
-import com.example.backend.domain.vote.entity.Vote
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
