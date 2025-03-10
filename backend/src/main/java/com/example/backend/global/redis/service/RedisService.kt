@@ -63,4 +63,15 @@ class RedisService(
         val userViewKey = "group:user:viewed:$groupId:$userId"
         redisDao.save(userViewKey, "viewed", 24 * 60 * 60L) // 24시간 동안만 조회한 것으로 처리
     }
+
+    fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {
+        redisDao.addBlacklist(refreshToken, expirationTimeInSeconds)
+    }
+
+    fun valid(key: String): Boolean {
+        if (redisDao.exists(key) && redisDao.get(key) != "blacklisted") {
+            return true
+        }
+        return false
+    }
 }

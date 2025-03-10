@@ -44,4 +44,20 @@ class RedisDao(
     fun setExpiration(key: String, expirationTimeInSeconds: Long) {
         redisTemplate.expire(key, expirationTimeInSeconds, TimeUnit.SECONDS)
     }
+
+    // 리프레시 토큰을 블랙리스트에 추가 (만료 시간 설정)
+    fun addBlacklist(key: String, expirationTime: Long) {
+        redisTemplate.opsForValue().set(key, "blacklisted", expirationTime, TimeUnit.SECONDS)
+    }
+
+    // 리프레시 토큰이 블랙리스트에 존재하는지 확인
+    fun isBlacklisted(key: String): Boolean {
+        return redisTemplate.hasKey(key)
+    }
+
+    // 블랙리스트에서 리프레시 토큰 삭제
+    fun removeFromBlacklist(key: String) {
+        redisTemplate.delete(key)
+    }
+
 }
