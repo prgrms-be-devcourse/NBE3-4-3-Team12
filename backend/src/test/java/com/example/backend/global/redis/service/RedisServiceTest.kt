@@ -1,6 +1,5 @@
-package com.example.backend.domain.redis.service
+package com.example.backend.global.redis.service
 
-import com.example.backend.global.redis.service.RedisService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
