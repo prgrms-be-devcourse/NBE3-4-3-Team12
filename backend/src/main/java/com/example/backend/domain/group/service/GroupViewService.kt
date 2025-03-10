@@ -25,7 +25,6 @@ class GroupViewService(private val redisTemplate: StringRedisTemplate) {
         }
     }
 
-
     fun getViewCount(groupId: Long): Long {
         val key = "$viewKeyPrefix$groupId"
         return redisTemplate.opsForValue().get(key)?.toLong() ?: 0
