@@ -1,6 +1,10 @@
 name: Gemini Code Review
 
 on:
+  push:
+    branches: [ feature/gemini ]  # 자신의 브랜치 이름으로 변경
+    paths:
+      - 'backend/**/*.kt'  # Kotlin 파일만 대상으로 지정
   pull_request:
     types: [opened, synchronize]
     paths:
@@ -117,7 +121,7 @@ jobs:
           path: gemini_review.md
 
       - name: Add PR comment
-        if: env.KOTLIN_FILES_EXISTS == 'true'
+        if: env.KOTLIN_FILES_EXISTS == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -131,3 +135,10 @@ jobs:
               repo: context.repo.repo,
               body: review
             });
+
+      - name: Print review results (for push events)
+        if: env.KOTLIN_FILES_EXISTS == 'true' && github.event_name == 'push'
+        run: |
+          echo "===== Gemini Code Review Results ====="
+          cat gemini_review.md
+          echo "======================================"
