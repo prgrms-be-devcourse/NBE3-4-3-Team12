@@ -68,4 +68,29 @@ jobs: #workflow에서 실행 작업들 모음
           KAKAO_LOGOUT_URL: https://kauth.kakao.com/oauth/logout
           KAKAO_LOGOUT_REDIRECT_URI: http://localhost:8080/auth/kakao/callback/
           CLIENT_BASE_URL: http://localhost:3000
-            --info --stacktrace
+
+      # JaCoCo 테스트 커버리지 보고서 생성
+      - name: Generate JaCoCo Test Coverage Report
+        run: ./gradlew jacocoTestReport
+
+      # 테스트 커버리지 검증
+      - name: Verify Test Coverage
+        run: ./gradlew jacocoTestCoverageVerification || true  # 커버리지가 낮아도 빌드 실패하지 않음
+
+      # 커버리지 보고서를 아티팩트로 업로드
+      - name: Upload JaCoCo Test Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/build/reports/jacoco/test/html/
+
+      # 선택 사항: 커버리지 결과를 PR 코멘트에 추가 (선택적)
+      - name: Comment Test Coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          paths: backend/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
+          title: '📊 컨트롤러 테스트 커버리지 리포트'
