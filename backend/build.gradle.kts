@@ -96,7 +96,7 @@ tasks.jacocoTestCoverageVerification {
             // Controller 클래스만 포함
             includes = listOf("com.example.backend.domain.*.controller.*")
             limit {
-                minimum = "0.40".toBigDecimal() // 40% 커버리지 요구
+                minimum = "0.80".toBigDecimal() // 40% 커버리지 요구
             }
         }
     }
