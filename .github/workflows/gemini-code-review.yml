@@ -2,22 +2,22 @@ name: Gemini Code Review
 
 on:
   push:
-    branches: [ feature/gemini ]  # 자신의 브랜치 이름으로 변경
+    branches: [ your-branch-name ]  # 자신의 브랜치 이름으로 변경
     paths:
-      - 'backend/**'  # Kotlin 파일만 대상으로 지정
+      - 'backend/**'
   pull_request:
     types: [opened, synchronize]
     paths:
       - 'backend/**'
 
 jobs:
-  code-review: # code-review 라는 작업 정의
+  code-review:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # 저장소 내용을 읽을 수 있는 권한
-      pull-requests: write # PR에 코멘트를 작성할 수 있는 권한
+      contents: read
+      pull-requests: write
     steps:
-      - name: Checkout repository # 첫 번째 단계로, 저장소 코드를 워크플로우 환경으로
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -28,14 +28,31 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Get changed files
-        id: changed-files
+      - name: Get changed files for PR
+        if: github.event_name == 'pull_request'
+        id: changed-files-pr
         run: |
-        # PR의 변경된 파일 목록 가져오기
+          # PR의 변경된 파일 목록 가져오기
           git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
           echo "Changed files:"
           cat changed_files.txt
-        # Kotlin 파일만 필터링
+          # Kotlin 파일만 필터링
+          grep "\.kt$" changed_files.txt > kotlin_files.txt || true
+          if [ -s kotlin_files.txt ]; then
+            echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "KOTLIN_FILES_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Get changed files for Push
+        if: github.event_name == 'push'
+        id: changed-files-push
+        run: |
+          # 이전 커밋과 현재 커밋 사이의 변경된 파일 목록 가져오기
+          git diff --name-only HEAD^ HEAD > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+          # Kotlin 파일만 필터링
           grep "\.kt$" changed_files.txt > kotlin_files.txt || true
           if [ -s kotlin_files.txt ]; then
             echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
@@ -47,10 +64,9 @@ jobs:
         if: env.KOTLIN_FILES_EXISTS == 'true'
         id: gemini-review
         env:
-#          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-        # Gemini API 설정
+          # Gemini API 설정
           GEMINI_ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}"
           
           # 코드 리뷰 결과를 저장할 변수
@@ -71,10 +87,7 @@ jobs:
                   {
                     "parts": [
                       {
-                        "text":
-                        "다음 Kotlin 코드를 검토하고 코드 품질, 가독성, 성능 및 보안 관점에서 개선점과 피드백을 제공해주세요. 
-                        특별히 강조할 중요한 이슈가 있다면 먼저 언급해주세요. 
-                        응답은 마크다운 형식의 간결한 한국어로 작성해주세요.\n\n파일 경로: ${file}\n\n코드:\n\`\`\`kotlin\n${FILE_CONTENT}\n\`\`\`"
+                        "text": "다음 Kotlin 코드를 검토하고 코드 품질, 가독성, 성능 및 보안 관점에서 개선점과 피드백을 제공해주세요. 특별히 강조할 중요한 이슈가 있다면 먼저 언급해주세요. 응답은 마크다운 형식의 간결한 한국어로 작성해주세요.\n\n파일 경로: ${file}\n\n코드:\n\`\`\`kotlin\n${FILE_CONTENT}\n\`\`\`"
                       }
                     ]
                   }
@@ -112,6 +125,13 @@ jobs:
             echo "\n\n... (리뷰가 너무 길어 잘렸습니다. 전체 리뷰는 워크플로우 아티팩트에서 확인하세요) ..." >> gemini_review_truncated.md
             mv gemini_review_truncated.md gemini_review.md
           fi
+          
+          # 결과를 콘솔에 출력 (push 이벤트용)
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "===== Gemini Code Review Results ====="
+            cat gemini_review.md
+            echo "======================================"
+          fi
 
       - name: Upload review artifact
         if: env.KOTLIN_FILES_EXISTS == 'true'
@@ -135,10 +155,3 @@ jobs:
               repo: context.repo.repo,
               body: review
             });
-
-      - name: Print review results (for push events)
-        if: env.KOTLIN_FILES_EXISTS == 'true' && github.event_name == 'push'
-        run: |
-          echo "===== Gemini Code Review Results ====="
-          cat gemini_review.md
-          echo "======================================"
