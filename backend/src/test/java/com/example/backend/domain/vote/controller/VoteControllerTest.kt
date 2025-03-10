@@ -117,6 +117,8 @@ class VoteControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.location").value(voteRequestDto.location))
             .andExpect(jsonPath("$.address").value(voteRequestDto.address))
+            .andExpect(jsonPath("$.latitude").value(voteRequestDto.latitude))
+            .andExpect(jsonPath("$.longitude").value(voteRequestDto.longitude))
             .andExpect(jsonPath("$.createdAt").exists())
     }
 

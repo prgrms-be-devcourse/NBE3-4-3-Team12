@@ -2,7 +2,7 @@ name: Gemini Code Review
 
 on:
   push:
-    branches: [ feature/gemini ]  # 자신의 브랜치 이름으로 변경
+    branches: [ feature/gemini ]
     paths:
       - 'backend/**'
   pull_request:
@@ -32,11 +32,9 @@ jobs:
         if: github.event_name == 'pull_request'
         id: changed-files-pr
         run: |
-          # PR의 변경된 파일 목록 가져오기
           git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
           echo "Changed files:"
           cat changed_files.txt
-          # Kotlin 파일만 필터링
           grep "\.kt$" changed_files.txt > kotlin_files.txt || true
           if [ -s kotlin_files.txt ]; then
             echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
@@ -48,11 +46,9 @@ jobs:
         if: github.event_name == 'push'
         id: changed-files-push
         run: |
-          # 이전 커밋과 현재 커밋 사이의 변경된 파일 목록 가져오기
           git diff --name-only HEAD^ HEAD > changed_files.txt
           echo "Changed files:"
           cat changed_files.txt
-          # Kotlin 파일만 필터링
           grep "\.kt$" changed_files.txt > kotlin_files.txt || true
           if [ -s kotlin_files.txt ]; then
             echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
@@ -66,28 +62,22 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # Gemini API 설정
           GEMINI_ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}"
           
-          # 코드 리뷰 결과를 저장할 변수
           REVIEW_COMMENT="## Gemini AI 코드 리뷰 결과\n\n"
           
-          # 변경된 각 Kotlin 파일에 대해 코드 리뷰 실행
           while IFS= read -r file; do
             if [[ -f "$file" ]]; then
               echo "리뷰 중: $file"
           
-              # 파일 내용 가져오기
               FILE_CONTENT=$(cat "$file")
           
-              # Gemini API 요청 본문 생성
-              REQUEST_BODY=$(cat << EOF
-              {
+              REQUEST_BODY='{
                 "contents": [
                   {
                     "parts": [
                       {
-                        "text": "다음 Kotlin 코드를 검토하고 코드 품질, 가독성, 성능 및 보안 관점에서 개선점과 피드백을 제공해주세요. 특별히 강조할 중요한 이슈가 있다면 먼저 언급해주세요. 응답은 마크다운 형식의 간결한 한국어로 작성해주세요.\n\n파일 경로: ${file}\n\n코드:\n\`\`\`kotlin\n${FILE_CONTENT}\n\`\`\`"
+                        "text": "다음 Kotlin 코드를 검토하고 코드 품질, 가독성, 성능 및 보안 관점에서 개선점과 피드백을 제공해주세요. 특별히 강조할 중요한 이슈가 있다면 먼저 언급해주세요. 응답은 마크다운 형식의 간결한 한국어로 작성해주세요.\n\n파일 경로: '"$file"'\n\n코드:\n```kotlin\n'"$FILE_CONTENT"'\n```"
                       }
                     ]
                   }
@@ -98,27 +88,20 @@ jobs:
                   "topP": 0.95,
                   "maxOutputTokens": 8192
                 }
-              }
-              EOF
-              )
+              }'
           
-              # Gemini API 호출
               RESPONSE=$(curl -s -X POST "$GEMINI_ENDPOINT" \
                 -H "Content-Type: application/json" \
                 -d "$REQUEST_BODY")
           
-              # API 응답에서 텍스트 추출
               REVIEW_TEXT=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text')
           
-              # 리뷰 결과 추가
               REVIEW_COMMENT+="### ${file}\n\n${REVIEW_TEXT}\n\n---\n\n"
             fi
           done < kotlin_files.txt
           
-          # PR 코멘트용으로 파일에 저장
           echo "$REVIEW_COMMENT" > gemini_review.md
           
-          # 코멘트가 너무 길면 자르기 (GitHub API 제한)
           if [ $(wc -c < gemini_review.md) -gt 65000 ]; then
             echo "리뷰 내용이 너무 깁니다. 요약 버전을 생성합니다."
             head -c 60000 gemini_review.md > gemini_review_truncated.md
@@ -126,7 +109,6 @@ jobs:
             mv gemini_review_truncated.md gemini_review.md
           fi
           
-          # 결과를 콘솔에 출력 (push 이벤트용)
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "===== Gemini Code Review Results ====="
             cat gemini_review.md
