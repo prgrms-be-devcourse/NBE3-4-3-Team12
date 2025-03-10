@@ -21,7 +21,7 @@ class CustomUserDetailService(
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String): CustomUserDetails {
         val member = memberService.findById(username.toLong())
-        return CustomUserDetails(MemberInfoDto.of(member))
+        return CustomUserDetails(MemberInfoDto(member))
     }
 
     fun loadUserByAccessToken(accessToken: String): CustomUserDetails {

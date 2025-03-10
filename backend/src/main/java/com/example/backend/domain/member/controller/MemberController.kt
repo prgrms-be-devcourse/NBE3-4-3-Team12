@@ -22,11 +22,7 @@ class MemberController(
         @AuthenticationPrincipal customUserDetails: CustomUserDetails
     ): ResponseEntity<ApiResponse<MemberInfoDto>> {
 
-        val memberDto = MemberInfoDto(
-            customUserDetails.userId,
-            customUserDetails.username,
-            customUserDetails.email
-        )
+        val memberDto = MemberInfoDto(customUserDetails)
         return ResponseEntity.ok().body(ApiResponse.of(memberDto))
     }
 

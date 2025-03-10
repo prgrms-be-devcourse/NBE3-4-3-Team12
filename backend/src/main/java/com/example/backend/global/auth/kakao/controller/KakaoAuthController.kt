@@ -60,8 +60,10 @@ class KakaoAuthController(
 
         // 카카오에서 인가 토큰이 아닌 에러를 반환할 시 홈페이지로 리다이렉트 및 에러 메세지 응답
         if (error != null) {
-            val errorResponse = ErrorResponse.of(
-                errorDescription ?: "UNKNOWN_ERROR", "400-$error", request.requestURI
+            val errorResponse = ErrorResponse(
+                message = errorDescription ?: "UNKNOWN_ERROR",
+                code = "400-$error",
+                requestUri = request.requestURI
             )
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers)

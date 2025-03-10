@@ -1,6 +1,7 @@
 package com.example.backend.domain.member.dto
 
 import com.example.backend.domain.member.entity.Member
+import com.example.backend.global.auth.model.CustomUserDetails
 
 /**
  * MemberInfoDto
@@ -12,13 +13,16 @@ data class MemberInfoDto(
     val nickname: String,
     val email: String
 ) {
-    companion object {
-        fun of(member: Member): MemberInfoDto {
-            return MemberInfoDto(
-                id = member.id!!,
-                nickname = member.nickname,
-                email = member.email
-            )
-        }
-    }
+
+    constructor(member: Member) : this(
+        id = member.id!!,
+        nickname = member.nickname,
+        email = member.email
+    )
+
+    constructor(customUserDetails: CustomUserDetails) : this(
+        id = customUserDetails.userId,
+        nickname = customUserDetails.username,
+        email = customUserDetails.email
+    )
 }

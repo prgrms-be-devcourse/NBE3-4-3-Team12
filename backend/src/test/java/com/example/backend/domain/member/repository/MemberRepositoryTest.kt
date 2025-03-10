@@ -158,7 +158,7 @@ class MemberRepositoryTest {
     @DisplayName("findMemberInfoDtoById 성공 테스트")
     fun findMemberInfoDtoByIdSuccessTest() {
         // given
-        val memberInfoDtoOfMember = MemberInfoDto.of(member)
+        val memberInfoDtoOfMember = MemberInfoDto(member)
         val optionalMemberInfoDto = memberRepository.findMemberInfoDtoById(1L)
 
         // when

@@ -21,19 +21,12 @@ class Member(
     @Column(name = "kakao_refresh_token")
     var kakaoRefreshToken: String = ""
 
-    companion object {
-        fun of(kakaoUserInfoDto: KakaoUserInfoResponseDto): Member {
-            return Member(
-                kakaoId = kakaoUserInfoDto.id,
-                nickname = kakaoUserInfoDto.properties.nickname,
-                email = kakaoUserInfoDto.kakaoAccount.email
-            )
-        }
-    }
+    constructor(kakaoUserInfoDto: KakaoUserInfoResponseDto) : this(
+        kakaoId = kakaoUserInfoDto.id,
+        nickname = kakaoUserInfoDto.properties.nickname,
+        email = kakaoUserInfoDto.kakaoAccount.email
+    )
 
-    fun updateRefreshToken(refreshToken: String) {
-        this.kakaoRefreshToken = refreshToken
-    }
 
     fun modify(memberModifyDto: MemberModifyRequestDto) {
         this.nickname = memberModifyDto.nickname

@@ -52,7 +52,7 @@ class MemberService(
 
     @Transactional
     fun join(kakaoUserInfoDto: KakaoUserInfoResponseDto) {
-        memberRepository.save(Member.of(kakaoUserInfoDto))
+        memberRepository.save(Member(kakaoUserInfoDto))
     }
 
     @Transactional
@@ -68,7 +68,7 @@ class MemberService(
         )
 
         cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
-        return MemberInfoDto.of(member)
+        return MemberInfoDto(member)
     }
 
     fun findMemberInfoDtosByNickname(nickname: String): List<MemberInfoDto> {

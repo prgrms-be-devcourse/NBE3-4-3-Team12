@@ -8,7 +8,6 @@ import com.example.backend.domain.voter.exception.VoterException
 import com.example.backend.global.exception.GlobalErrorCode
 import com.example.backend.global.exception.GlobalException
 import com.example.backend.global.response.ErrorResponse
-import com.example.backend.global.response.ErrorResponse.Companion.of
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.ConstraintViolationException
@@ -50,7 +49,7 @@ class GlobalControllerAdvice {
         })
 
         return ResponseEntity.status(ex.statusCode.value()).body(
-            ErrorResponse.of(
+            ErrorResponse(
                 GlobalErrorCode.NOT_VALID.message,
                 GlobalErrorCode.NOT_VALID.code,
                 request.requestURI,
@@ -73,7 +72,7 @@ class GlobalControllerAdvice {
         })
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            ErrorResponse.of(
+            ErrorResponse(
                 GlobalErrorCode.NOT_VALID.message,
                 GlobalErrorCode.NOT_VALID.code,
                 request.requestURI,
@@ -85,42 +84,42 @@ class GlobalControllerAdvice {
     @ExceptionHandler(GroupException::class)
     fun handleGroupException(ex: GroupException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(GlobalException::class)
     fun handleGlobalException(ex: GlobalException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(AdminException::class)
     fun handleAdminException(ex: AdminException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(CategoryException::class)
     fun handleCategoryException(ex: CategoryException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(MemberException::class)
     fun handleMemberException(ex: MemberException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(VoterException::class)
     fun handleVoterException(ex: VoterException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(ex.status)
-            .body(ErrorResponse.of(ex.message!!, ex.code, request.requestURI))
+            .body(ErrorResponse(ex.message, ex.code, request.requestURI))
     }
 
     @ExceptionHandler(Exception::class)
     fun handleVoterException(ex: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse.of(ex.message ?: "UNKNOWN_ERROR", "500", request.requestURI))
+            .body(ErrorResponse(ex.message ?: "UNKNOWN_ERROR", "500", request.requestURI))
     }
 }
