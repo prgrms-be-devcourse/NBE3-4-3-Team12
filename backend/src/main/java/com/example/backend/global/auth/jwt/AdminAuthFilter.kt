@@ -86,7 +86,7 @@ class AdminAuthFilter(
 		val refreshToken = cookieService.getRefreshTokenFromCookie(request)
 
 		if (!refreshToken.isNullOrEmpty()) {
-			redisService.delete(refreshToken)
+			redisService.addBlackList (refreshToken, jwtUtil.getRefreshTokenExpirationTime())
 		}
 		cookieService.clearTokenFromCookie(response)
 		SecurityContextHolder.clearContext()
