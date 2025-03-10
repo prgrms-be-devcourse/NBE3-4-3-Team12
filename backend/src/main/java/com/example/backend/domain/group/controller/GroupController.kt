@@ -2,6 +2,7 @@ package com.example.backend.domain.group.controller;
 
 import com.example.backend.domain.group.dto.*
 import com.example.backend.domain.group.service.GroupService
+import com.example.backend.domain.group.service.GroupViewService
 import com.example.backend.global.auth.model.CustomUserDetails
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/groups")
 class GroupController(
-    private val groupService: GroupService
+    private val groupService: GroupService,
+    private val groupViewService: GroupViewService
 ) {
     @PostMapping
     fun createGroup (
@@ -40,6 +42,7 @@ class GroupController(
     @GetMapping("/{groupId}")
     fun getGroup(@PathVariable("groupId") id : Long) : ResponseEntity<GroupResponseDto>{
         log.info("Getting group by groupId {}$id");
+        groupViewService.incrementViewCount(id);
         val response : GroupResponseDto = groupService.findGroup(id)
         return  ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
