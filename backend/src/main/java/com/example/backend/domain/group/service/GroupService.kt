@@ -33,7 +33,8 @@ class GroupService(
     val categoryRepository: CategoryRepository,
     val voteRepository: VoteRepository,
     val voterRepository: VoterRepository,
-    private val voteService: VoteService
+    private val voteService: VoteService,
+    private val groupViewService: GroupViewService
 ) {
     @Transactional
     fun create(groupRequestDto : GroupRequestDto, id : Long) : GroupResponseDto{
@@ -70,7 +71,10 @@ class GroupService(
 
     @Transactional(readOnly = true)
     fun findGroup(id : Long) : GroupResponseDto{
-        return groupRepository.findById(id).map{GroupResponseDto(it)}.orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
+        val group = groupRepository.findById(id)
+            .orElseThrow { throw GroupException(GroupErrorCode.NOT_FOUND) }
+        val viewCount = groupViewService.getViewCount(id)
+        return GroupResponseDto(group, viewCount)
     }
 
 
