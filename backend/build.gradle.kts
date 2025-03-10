@@ -2,6 +2,8 @@ plugins {
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
+    id("jacoco")  // JaCoCo 플러그인 추가
+
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
     kotlin("plugin.jpa") version "1.9.25"
@@ -72,6 +74,10 @@ kotlin {
     }
 }
 
+jacoco {
+    toolVersion = "0.8.11"  // JaCoCo 도구 버전 (최신 버전으로 설정)
+}
+
 allOpen {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
@@ -80,4 +86,36 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.jacocoTestReport)  // 보고서 생성 후 검증
+    violationRules {
+        rule {
+            element = "CLASS"
+            // Controller 클래스만 포함
+            includes = listOf("com.example.backend.domain.*.controller.*")
+            limit {
+                minimum = "0.40".toBigDecimal() // 40% 커버리지 요구
+            }
+        }
+    }
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)  // 테스트 후 자동으로 보고서 생성
+}
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+    // Controller 패키지만 대상으로 지정
+    classDirectories.setFrom(
+        sourceSets.main.get().output.asFileTree.matching {
+            include("**/domain/*/controller/**")
+        }
+    )
 }
