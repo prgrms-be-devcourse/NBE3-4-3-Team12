@@ -33,11 +33,11 @@ class RedisServiceTest {
     }
 
     @Test
-    @DisplayName("리프레시 토큰 삭제 테스트")
+    @DisplayName("리프레시 토큰 블랙리스트 테스트")
     fun refreshTokenShouldBeDeleted() {
-        redisService.delete(refreshToken)
+        redisService.addBlackList(refreshToken, 3600000L)
         val storedValue = redisService.get(refreshToken)
-        assertThat(storedValue).isNull()
+        assertThat(storedValue).isEqualTo("blacklisted")
     }
 
     @Test

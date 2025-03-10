@@ -139,7 +139,7 @@ class MemberAuthFilter(
         ex: AuthException, refreshToken: String,
         request: HttpServletRequest, response: HttpServletResponse
     ) {
-        redisService.delete(refreshToken)
+        redisService.addBlackList(refreshToken, jwtUtil.getRefreshTokenExpirationTime())
         cookieService.clearTokenFromCookie(response)
         SecurityContextHolder.clearContext()
 
