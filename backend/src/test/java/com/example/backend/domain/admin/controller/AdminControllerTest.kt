@@ -144,7 +144,7 @@ class AdminControllerTest(
     @DisplayName("유저 블랙리스트 테스트")
     fun blacklistedMember() {
         val loginResponse = loginAndGetResponse()
-        redisService.save("refreshToken", "1", 3L)
+        redisService.save("refreshToken", "kakao: 1", 3L)
 
         val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
         val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
