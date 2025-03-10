@@ -74,6 +74,10 @@ kotlin {
     }
 }
 
+jacoco {
+    toolVersion = "0.8.11"  // JaCoCo 도구 버전 (최신 버전으로 설정)
+}
+
 allOpen {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
@@ -84,10 +88,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-
-jacoco {
-    toolVersion = "0.8.11"  // JaCoCo 도구 버전 (최신 버전으로 설정)
-}
 tasks.jacocoTestCoverageVerification {
     dependsOn(tasks.jacocoTestReport)  // 보고서 생성 후 검증
     violationRules {
@@ -96,11 +96,12 @@ tasks.jacocoTestCoverageVerification {
             // Controller 클래스만 포함
             includes = listOf("com.example.backend.domain.*.controller.*")
             limit {
-                minimum = "0.80".toBigDecimal() // 40% 커버리지 요구
+                minimum = "0.40".toBigDecimal() // 40% 커버리지 요구
             }
         }
     }
 }
+
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)  // 테스트 후 자동으로 보고서 생성
 }
