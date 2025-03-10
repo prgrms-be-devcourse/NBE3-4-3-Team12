@@ -92,7 +92,7 @@ class GroupControllerTest {
             member.id!!, member.nickname, member.email
         )
         refreshToken = tokenProvider.generateMemberRefreshToken()
-        `when`(redisService.valid(Mockito.anyString())).thenReturn(true)
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
 
         val category = Category("testCategory", CategoryType.STUDY)
         categoryRepository.save(category)

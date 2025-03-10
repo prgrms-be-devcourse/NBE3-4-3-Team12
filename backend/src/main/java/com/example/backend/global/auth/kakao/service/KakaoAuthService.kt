@@ -2,8 +2,6 @@ package com.example.backend.global.auth.kakao.service
 
 import com.example.backend.domain.member.dto.MemberTokenReissueDto
 import com.example.backend.domain.member.service.MemberService
-import com.example.backend.global.auth.exception.AuthErrorCode
-import com.example.backend.global.auth.exception.AuthException
 import com.example.backend.global.auth.kakao.dto.KakaoTokenResponseDto
 import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto
 import com.example.backend.global.auth.kakao.dto.LoginResponseDto
@@ -129,10 +127,6 @@ class KakaoAuthService(
 
         val rawKakaoMemberId = redisService.get(refreshToken)
             ?: throw KakaoAuthException(KakaoAuthErrorCode.TOKEN_REISSUE_FAILED)
-
-        if (rawKakaoMemberId == "blacklisted") {
-            AuthException(AuthErrorCode.TOKEN_EXPIRED)
-        }
 
         val kakaoMemberId = rawKakaoMemberId
             .substringAfter("kakao: ").trim().toLong()
