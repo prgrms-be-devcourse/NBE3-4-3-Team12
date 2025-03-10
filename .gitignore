@@ -38,7 +38,7 @@ out/
 
 #.gitignore yml 로컬 프로필 설정
 backend/src/main/resources/application-local.yml
-backend/src/test/resources/application-test.yml
+backend/src/main/resources/application-test.yml
 
 #OS
 .DS_Store

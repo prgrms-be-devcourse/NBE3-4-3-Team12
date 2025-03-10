@@ -2,7 +2,7 @@ name: Gemini Code Review
 
 on:
   push:
-    branches: [ your-branch-name ]  # 자신의 브랜치 이름으로 변경
+    branches: [ feature/gemini ]  # 자신의 브랜치 이름으로 변경
     paths:
       - 'backend/**'
   pull_request:
