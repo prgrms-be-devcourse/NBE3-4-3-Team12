@@ -8,7 +8,8 @@ import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
 import com.example.backend.domain.voter.repository.VoterRepository
 import jakarta.persistence.EntityNotFoundException
-import jakarta.validation.Valid
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -56,6 +57,7 @@ class VoteService(
         return VoteResponseDto.toDto(savedVote)
     }
 
+    @Cacheable(value = ["votes"], key = "#groupId")
     fun findAllByGroupId(groupId: Long): List<VoteResponseDto> {
         return voteRepository.findAllByGroupId(groupId)
             .map { VoteResponseDto.toDto(it) }
@@ -68,6 +70,7 @@ class VoteService(
     }
 
     @Transactional
+    @CacheEvict(value = ["votes"], key = "#groupId")
     fun modifyVote(groupId: Long, voteId: Long, requestDto: VoteRequestDto): VoteResponseDto {
         // 존재 확인만 함
         voteRepository.findByIdAndGroupId(voteId, groupId)
@@ -88,6 +91,7 @@ class VoteService(
         return VoteResponseDto.toDto(updatedVote)
     }
 
+    @CacheEvict(value = ["votes"], key = "#groupId")
     fun deleteVote(groupId: Long, voteId: Long) {
         val vote = voteRepository.findByIdAndGroupId(voteId, groupId)
             .orElseThrow { EntityNotFoundException("Vote not found") }
