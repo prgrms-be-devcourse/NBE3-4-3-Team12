@@ -48,6 +48,11 @@ class MemberAuthFilter(
         val accessToken = cookieService.getAccessTokenFromCookie(request)
         val refreshToken = cookieService.getRefreshTokenFromCookie(request)
 
+        if(!redisService.isValidRefreshToken(refreshToken!!)) {
+            handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), "", request, response)
+            return
+        }
+
         // 엑세스 토큰과 리프레쉬 토큰이 null일 경우 에러 응답
         // 엑세스 토큰만 null일 경우 리프레쉬 토큰으로 토큰 재발급 후 인증
         if (accessToken == null) {

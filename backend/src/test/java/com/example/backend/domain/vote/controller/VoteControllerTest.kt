@@ -69,7 +69,7 @@ class VoteControllerTest {
 
         // 테스트 요청 시 필요한 인증을 위해 리프레시 토큰 생성
         refreshToken = tokenProvider.generateMemberRefreshToken()
-        `when`(redisService.valid(Mockito.anyString())).thenReturn(true)
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
 
         // 테스트용 투표 요청 DTO 생성
         voteRequestDto = VoteRequestDto(

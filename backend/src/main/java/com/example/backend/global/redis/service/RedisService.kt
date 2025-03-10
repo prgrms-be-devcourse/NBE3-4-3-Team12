@@ -38,13 +38,10 @@ class RedisService(
     }
 
     fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {
-        redisDao.addBlacklist(refreshToken, expirationTimeInSeconds)
+        redisDao.save(refreshToken, "blacklisted", expirationTimeInSeconds)
     }
 
-    fun valid(key: String): Boolean {
-        if (redisDao.exists(key) && redisDao.get(key) != "blacklisted") {
-            return true
-        }
-        return false
+    fun isValidRefreshToken(key: String): Boolean {
+        return redisDao.exists(key) && redisDao.get(key) != "blacklisted"
     }
 }
