@@ -51,9 +51,6 @@ class VoteControllerTest {
 
     @BeforeEach // 각 테스트 메서드가 실행되기 전에 매번 실행
     fun setUp() {
-        // ObjectMapper에 JavaTimeModule 등록
-//        objectMapper.registerModule(JavaTimeModule())
-
         // 테스트 데이터 초기화 및 DB 재설정
         em.createNativeQuery("ALTER TABLE vote ALTER COLUMN id RESTART WITH 1").executeUpdate()
 

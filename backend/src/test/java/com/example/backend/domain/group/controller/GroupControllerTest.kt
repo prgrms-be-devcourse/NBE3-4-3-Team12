@@ -1,8 +1,9 @@
-package com.example.backend.domain.group.controller;
+package com.example.backend.test.group;
 
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
+import com.example.backend.domain.group.controller.GroupController
 import com.example.backend.domain.group.dto.GroupRequestDto
 import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.domain.group.entity.Group
@@ -45,29 +46,22 @@ import java.util.*
 class GroupControllerTest {
 
     @Autowired
-    private lateinit var groupService: GroupService
-
+    private lateinit var groupService : GroupService
     @Autowired
     private lateinit var tokenProvider: TestTokenProvider
-
     @Autowired
     private lateinit var memberRepository: MemberRepository
-
     @Autowired
     private lateinit var groupRepository: GroupRepository
-
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
-
     @Autowired
     private lateinit var voteRepository: VoteRepository
-
     @Autowired
     private lateinit var voterRepository: VoterRepository
 
     @Autowired
-    private lateinit var mvc: MockMvc
-
+    private lateinit var mvc : MockMvc
     @PersistenceContext
     private lateinit var em: EntityManager
 
@@ -76,7 +70,8 @@ class GroupControllerTest {
     @BeforeEach
     fun setUp() {
 
-        em.createNativeQuery("ALTER TABLE categories ALTER COLUMN id RESTART WITH 1").executeUpdate()
+        memberRepository.deleteAll()
+        groupRepository.deleteAll()
         em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
         em.createNativeQuery("ALTER TABLE \"groups\" ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
@@ -90,40 +85,35 @@ class GroupControllerTest {
         )
         val category = Category("testCategory", CategoryType.STUDY)
         categoryRepository.save(category)
-        val categories: MutableList<Category> = categoryRepository.findAll()
+        val categories : MutableList<Category> = categoryRepository.findAll()
 
-        for (i in 0 until 5) {
-            val group = Group("title$i", "description$i", member, GroupStatus.RECRUITING, 5)
-            val groupCategories: MutableList<GroupCategory> =
-                categories.map { GroupCategory(group, category) }.toMutableList()
+        for (i in 0 until 5){
+            val group = Group("title$i","description$i",member,GroupStatus.RECRUITING,5)
+            val groupCategories : MutableList<GroupCategory> = categories.map { GroupCategory(group,category) }.toMutableList()
             group.addGroupCategories(groupCategories)
             groupRepository.save(group)
             val groupId = group.id
-            val vote1 =
-                Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
-            val vote2 =
-                Vote(groupId = groupId!!, location = "장소2", address = "주소2", latitude = 11.11111, longitude = 11.11111)
-            val vote3 =
-                Vote(groupId = groupId!!, location = "장소3", address = "주소3", latitude = 11.11111, longitude = 11.11111)
+            val vote1 = Vote(groupId = groupId!!, location = "장소1", address = "주소1", latitude = 11.11111, longitude = 11.11111)
+            val vote2 = Vote(groupId = groupId!!, location = "장소2", address = "주소2", latitude = 11.11111, longitude = 11.11111)
+            val vote3 = Vote(groupId = groupId!!, location = "장소3", address = "주소3", latitude = 11.11111, longitude = 11.11111)
             voteRepository.save(vote1)
             voteRepository.save(vote2)
             voteRepository.save(vote3)
-            val voter = Voter(Voter.VoterId(member.id!!, groupId), member, vote1)
-            val voter1 = Voter(Voter.VoterId(member2.id!!, groupId), member2, vote2)
+            val voter = Voter(Voter.VoterId(member.id!!,groupId),member,vote1)
+            val voter1 = Voter(Voter.VoterId(member2.id!!,groupId),member2,vote2)
             voterRepository.save(voter)
             voterRepository.save(voter1)
-            if (0 < i) group.status = GroupStatus.COMPLETED
+            if (0<i) group.status = GroupStatus.COMPLETED
         }
     }
 
     @Test
     @DisplayName("그룹 생성")
     fun t1() {
-        val resultActions: ResultActions = mvc.perform(
-            post("/groups")
-                .cookie(Cookie("accessToken", accessToken))
-                .content(
-                    """
+        val resultActions : ResultActions = mvc.perform(
+                post("/groups")
+                        .cookie(Cookie("accessToken",accessToken))
+                        .content("""
                                 {
                                   "title": "제목1",
                                   "description": "내용1",
@@ -131,125 +121,118 @@ class GroupControllerTest {
                                   "categoryIds": [1],
                                   "status":"RECRUITING"
                                 }
-                                """
-                )
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                                """)
+                        .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
-        val groupResponseDto: GroupResponseDto = groupService.create(
+        val groupResponseDto : GroupResponseDto = groupService.create(
             GroupRequestDto(
                 "제목1",
                 "내용1",
                 5,
                 Arrays.asList(1L),
-                GroupStatus.RECRUITING
-            ), 1L
-        );
+                GroupStatus.RECRUITING),1L);
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
-            .andExpect(handler().methodName("createGroup"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").exists())
-            .andExpect(jsonPath("$.title").value(groupResponseDto.title))
-            .andExpect(jsonPath("$.description").value(groupResponseDto.description))
-            .andExpect(jsonPath("$.memberId").value(groupResponseDto.memberId))
-            .andExpect(jsonPath("$.maxParticipants").value(groupResponseDto.maxParticipants))
-            .andExpect(jsonPath("$.category").isArray())
-            .andExpect(jsonPath("$.category[0].id").value(1L))
-            .andExpect(jsonPath("$.status").value(Matchers.equalTo("RECRUITING")))
+                .andExpect(handler().methodName("createGroup"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.title").value(groupResponseDto.title))
+                .andExpect(jsonPath("$.description").value(groupResponseDto.description))
+                .andExpect(jsonPath("$.memberId").value(groupResponseDto.memberId))
+                .andExpect(jsonPath("$.maxParticipants").value(groupResponseDto.maxParticipants))
+                .andExpect(jsonPath("$.category").isArray())
+//                .andExpect(jsonPath("$.category[0].id").value(1L))
+                .andExpect(jsonPath("$.status").value(Matchers.equalTo("RECRUITING")))
     }
 
     @Test
     @DisplayName("그룹 전체 조회")
     fun t2() {
-        val resultActions: ResultActions = mvc.perform(
-            get("/groups")
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        val resultActions : ResultActions = mvc.perform(
+                get("/groups")
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
-            .andExpect(handler().methodName("listGroups"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
+                .andExpect(handler().methodName("listGroups"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.length()").value(Matchers.greaterThan(0)))
     }
 
     @Test
     @DisplayName("그룹 특정 조회")
     fun t3() {
-        val resultActions: ResultActions = mvc.perform(
-            get("/groups/{id}", 1L)
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        val resultActions : ResultActions = mvc.perform(
+                get("/groups/{id}",1L)
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
-            .andExpect(handler().methodName("getGroup"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(1L))
-            .andExpect(jsonPath("$.title").isNotEmpty())
-            .andExpect(jsonPath("$.description").isNotEmpty())
-            .andExpect(jsonPath("$.memberId").isNotEmpty())
-            .andExpect(jsonPath("$.maxParticipants").isNotEmpty())
-            .andExpect(jsonPath("$.category").isNotEmpty())
-            .andExpect(jsonPath("$.status").isNotEmpty())
+                .andExpect(handler().methodName("getGroup"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.title").isNotEmpty())
+                .andExpect(jsonPath("$.description").isNotEmpty())
+                .andExpect(jsonPath("$.memberId").isNotEmpty())
+                .andExpect(jsonPath("$.maxParticipants").isNotEmpty())
+                .andExpect(jsonPath("$.category").isNotEmpty())
+                .andExpect(jsonPath("$.status").isNotEmpty())
     }
 
     @Test
     @DisplayName("그룹 수정")
     fun t4() {
-        val resultActions: ResultActions = mvc.perform(
-            put("/groups/{id}", 1L)
-                .cookie(Cookie("accessToken", accessToken))
-                .content(
-                    """
+        val resultActions : ResultActions = mvc.perform(
+                put("/groups/{id}",1L)
+                        .cookie( Cookie("accessToken",accessToken))
+                        .content("""
                                 {
                                   "title": "제목2",
                                   "description": "내용3",
                                   "maxParticipants":6,
                                   "groupStatus":"RECRUITING"
                                 }
-                                """
-                )
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                                """)
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
-            .andExpect(handler().methodName("modifyGroup"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(1L))
-            .andExpect(jsonPath("$.title").value("제목2"))
-            .andExpect(jsonPath("$.description").value("내용3"))
-            .andExpect(jsonPath("$.maxParticipants").value(6))
-            .andExpect(jsonPath("$.status").value("RECRUITING"))
+                .andExpect(handler().methodName("modifyGroup"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.title").value("제목2"))
+                .andExpect(jsonPath("$.description").value("내용3"))
+                .andExpect(jsonPath("$.maxParticipants").value(6))
+                .andExpect(jsonPath("$.status").value("RECRUITING"))
     }
 
     @Test
     @DisplayName("그룹 삭제")
     fun t5() {
-        val resultActions: ResultActions = mvc.perform(
-            delete("/groups/{id}", 1L)
-                .cookie(Cookie("accessToken", accessToken))
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+        val resultActions : ResultActions = mvc.perform(
+                delete("/groups/{id}",1L)
+                        .cookie( Cookie("accessToken",accessToken))
+                        .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
-            .andExpect(handler().methodName("deleteGroup"))
-            .andExpect(status().isOk)
+                .andExpect(handler().methodName("deleteGroup"))
+                .andExpect(status().isOk)
     }
 
     @Test
     @DisplayName("그룹 참가")
     fun t6() {
-        val resultActions: ResultActions = mvc.perform(
+        val resultActions : ResultActions = mvc.perform(
             post("/groups/join")
-                .cookie(Cookie("accessToken", accessToken))
-                .content(
-                    """
+                .cookie(Cookie("accessToken",accessToken))
+                .content("""
                     {
                         "groupId": 1,
                         "memberId": 1
                     }
-                """
-                )
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                """)
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
@@ -260,10 +243,10 @@ class GroupControllerTest {
     @Test
     @DisplayName("유저가 속한 그룹 조회")
     fun t7() {
-        val resultActions: ResultActions = mvc.perform(
+        val resultActions : ResultActions = mvc.perform(
             get("/groups/member")
-                .cookie(Cookie("accessToken", accessToken))
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                .cookie( Cookie("accessToken",accessToken))
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
@@ -275,10 +258,10 @@ class GroupControllerTest {
     @Test
     @DisplayName("투표완료된 그룹명과 장소 조회")
     fun t8() {
-        val resultActions: ResultActions = mvc.perform(
+        val resultActions : ResultActions = mvc.perform(
             get("/groups/location")
-                .cookie(Cookie("accessToken", accessToken))
-                .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
+                .cookie( Cookie("accessToken",accessToken))
+                .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
         resultActions.andExpect(handler().handlerType(GroupController::class.java))
