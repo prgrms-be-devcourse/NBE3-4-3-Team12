@@ -1,8 +1,9 @@
-package com.example.backend.domain.group.controller;
+package com.example.backend.test.group;
 
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
+import com.example.backend.domain.group.controller.GroupController
 import com.example.backend.domain.group.dto.GroupRequestDto
 import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.domain.group.entity.Group
@@ -45,29 +46,22 @@ import java.util.*
 class GroupControllerTest {
 
     @Autowired
-    private lateinit var groupService: GroupService
-
+    private lateinit var groupService : GroupService
     @Autowired
     private lateinit var tokenProvider: TestTokenProvider
-
     @Autowired
     private lateinit var memberRepository: MemberRepository
-
     @Autowired
     private lateinit var groupRepository: GroupRepository
-
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
-
     @Autowired
     private lateinit var voteRepository: VoteRepository
-
     @Autowired
     private lateinit var voterRepository: VoterRepository
 
     @Autowired
-    private lateinit var mvc: MockMvc
-
+    private lateinit var mvc : MockMvc
     @PersistenceContext
     private lateinit var em: EntityManager
 

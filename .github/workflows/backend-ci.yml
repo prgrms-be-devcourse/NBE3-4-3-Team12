@@ -21,8 +21,18 @@ jobs: #workflow에서 실행 작업들 모음
       run: # 모든 명령어가 실행될 기본 디렉토리
         working-directory: ./backend
 
-    env:
-      SPRING_PROFILES_ACTIVE: test # application-test.yml 프로필 사용
+    # Redis 서비스 추가
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
       - name: Set up JDK 21
@@ -41,52 +51,6 @@ jobs: #workflow에서 실행 작업들 모음
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Create test configuration file
-        run: |
-          cat > src/main/resources/application-test.yml << EOF
-          spring:
-            datasource:
-              url: jdbc:h2:mem:testdb;MODE=MySQL;
-              driverClassName: org.h2.Driver
-              username: sa
-            jpa:
-              hibernate:
-                ddl-auto: create-drop
-            security:
-              oauth2:
-                client:
-                  registration:
-                    kakao:
-                      client-id: ${{ secrets.KAKAO_CLIENT_ID }}
-                      redirect-uri: http://localhost:8080/auth/kakao/callback
-                      authorization-grant-type: authorization_code
-                      scope: profile_nickname,profile_image,account_email
-                  provider:
-                    kakao:
-                      authorization-uri: https://kauth.kakao.com/oauth/authorize
-                      token-uri: https://kauth.kakao.com/oauth/token
-                      user-info-uri: https://kapi.kakao.com/v2/user/me
-                      user-name-attribute: id
-              jwt:
-                secret-key: ${{ secrets.JWT_SECRET_KEY }}
-                access-token:
-                  expiration: 216000
-                refresh-token:
-                  expiration: 518400
-
-          logging:
-            level:
-              org:
-                springframework:
-                  security: DEBUG
-
-          kakao:
-            logout-url: https://kauth.kakao.com/oauth/logout
-            logout-redirect-uri: http://localhost:8080/auth/kakao/logout/callback
-          client:
-            base-url: http://localhost:3000
-          EOF
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -101,6 +65,8 @@ jobs: #workflow에서 실행 작업들 모음
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
           SPRING_DATASOURCE_USERNAME: sa
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           SPRING_SECURITY_JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           SPRING_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: 216000
           SPRING_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: 518400
@@ -124,3 +90,21 @@ jobs: #workflow에서 실행 작업들 모음
       # 테스트 커버리지 검증
       - name: Verify Test Coverage
         run: ./gradlew jacocoTestCoverageVerification || true  # 커버리지가 낮아도 빌드 실패하지 않음
+
+      # 커버리지 보고서를 아티팩트로 업로드
+      - name: Upload JaCoCo Test Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: jacoco-report
+          path: backend/build/reports/jacoco/test/html/
+
+      # 선택 사항: 커버리지 결과를 PR 코멘트에 추가 (선택적)
+      - name: Comment Test Coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          paths: backend/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
+          title: '📊 컨트롤러 테스트 커버리지 리포트'
