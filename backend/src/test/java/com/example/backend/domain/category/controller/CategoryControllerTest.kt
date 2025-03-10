@@ -77,7 +77,6 @@ class CategoryControllerTest {
     fun setUp() {
         val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
         adminRepository.save(admin)
-        memberRepository.deleteAll()
 
         em.createNativeQuery("ALTER TABLE \"groups\" ALTER COLUMN id RESTART WITH 1").executeUpdate()
         em.createNativeQuery("ALTER TABLE categories ALTER COLUMN id RESTART WITH 1").executeUpdate()

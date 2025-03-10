@@ -68,7 +68,6 @@ class AdminControllerTest(
     @BeforeEach
     fun setUp() {
         em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
-        adminRepository.deleteAll()
         val admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
         adminRepository.save(admin)
     }

@@ -48,7 +48,6 @@ class MemberControllerTest {
 
     @BeforeEach
     fun setUp() {
-        memberRepository.deleteAll()
         em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
         val member = Member(1L, "testUser", "test@test.com")

@@ -64,8 +64,6 @@ class VoterControllerTest {
     fun setUp() {
 
         // 테스트 데이터 초기화 및 DB 재설정
-        memberRepository.deleteAll()
-        groupRepository.deleteAll()
         em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
         em.createNativeQuery("ALTER TABLE \"groups\" ALTER COLUMN id RESTART WITH 1").executeUpdate()
 
