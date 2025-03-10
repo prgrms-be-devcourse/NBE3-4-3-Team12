@@ -5,7 +5,7 @@ on: # 워크플로우가 트리거되는 이벤트를 정의
     # 특정 브랜치에 푸쉬될때
     # feature/ 이런식으로 기능개발을 하기 때문에 추가함
     # 다른 이름의  작업 브랜치를 쓰신다면 개인적으로 추가해주면 될 것 같습니다. "" 없이 브랜치 이름을 추가.
-    branches: [ main , kotlin-migration, 'feature/*' ]
+    branches: [ main , 'feature/*' ]
     paths:
       - 'backend/**'
       - '.github/workflows/**'  # 워크플로우 파일 자체가 변경되어도 실행
@@ -21,6 +21,17 @@ jobs: #workflow에서 실행 작업들 모음
       run: # 모든 명령어가 실행될 기본 디렉토리
         working-directory: ./backend
 
+    # Redis 서비스 추가
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps: # 순차로 실행
       - uses: actions/checkout@v3 # actions/checkout@v3는 GitHub에서 제공하는 공식 액션, 저장소 코드를 작업 환경으로 가져옵니다.
       - name: Set up JDK 21
@@ -53,6 +64,8 @@ jobs: #workflow에서 실행 작업들 모음
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
           SPRING_DATASOURCE_USERNAME: sa
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
           SPRING_SECURITY_JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           SPRING_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION: 216000
           SPRING_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION: 518400
@@ -77,6 +90,8 @@ jobs: #workflow에서 실행 작업들 모음
       - name: Verify Test Coverage
         run: ./gradlew jacocoTestCoverageVerification || true  # 커버리지가 낮아도 빌드 실패하지 않음
 
+      - name: Test with Gradle
+        run: ./gradlew test
       # 커버리지 보고서를 아티팩트로 업로드
       - name: Upload JaCoCo Test Coverage Report
         uses: actions/upload-artifact@v4
