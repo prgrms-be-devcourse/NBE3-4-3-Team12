@@ -7,9 +7,11 @@ import com.example.backend.domain.group.entity.GroupStatus
 import com.example.backend.domain.group.repository.GroupRepository
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.global.redis.service.RedisService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
+import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.validator.internal.util.Contracts.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -36,7 +38,8 @@ class AdminControllerTest(
     private val mockMvc: MockMvc,
     private val groupRepository: GroupRepository,
     private val memberRepository: MemberRepository,
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
+    private val redisService: RedisService
 ) {
 
     @PersistenceContext
@@ -61,7 +64,7 @@ class AdminControllerTest(
         val member = Member(100L, "testUser", "test@test.com")
         memberRepository.save(member)
 
-        val group = Group("????", "?? ?? ???? ??", member, GroupStatus.RECRUITING, 10)
+        val group = Group("title", "description", member, GroupStatus.RECRUITING, 10)
         return groupRepository.save(group).id!!
     }
 
@@ -74,7 +77,7 @@ class AdminControllerTest(
 
 
     @Test
-    @DisplayName("??? ?? ???")
+    @DisplayName("관리자 로그인 테스트")
     fun loginSuccessTest() {
         val loginResponse = loginAndGetResponse()
 
@@ -90,11 +93,9 @@ class AdminControllerTest(
     }
 
     @Test
-    @DisplayName("???? ?? ???")
+    @DisplayName("관리자 로그아웃 테스트")
     fun logoutSuccessTest() {
         val loginResponse = loginAndGetResponse()
-
-        loginResponse.andExpect(status().isOk)
 
         val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
         val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
@@ -115,12 +116,11 @@ class AdminControllerTest(
     }
 
     @Test
-    @DisplayName("??? ?? ?? ???")
+    @DisplayName("그룹 삭제 테스트")
     fun deleteAdminTest() {
         val groupId = createGroupResponse()
 
         val loginResponse = loginAndGetResponse()
-        loginResponse.andExpect(status().isOk)
 
         val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
         val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
@@ -138,5 +138,27 @@ class AdminControllerTest(
 
         val group = groupRepository.findById(groupId).orElseThrow()
         assert(group.status == GroupStatus.DELETED)
+    }
+
+    @Test
+    @DisplayName("유저 블랙리스트 테스트")
+    fun blacklistedMember() {
+        val loginResponse = loginAndGetResponse()
+        redisService.save("refreshToken", "1", 3L)
+
+        val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
+
+        val deleteGroupResponse = mockMvc.perform(
+            delete("/admin/members/1/blacklist")
+                .cookie(Cookie("accessToken", accessToken))
+                .cookie(Cookie("refreshToken", refreshToken))
+        )
+
+        deleteGroupResponse
+            .andExpect(status().isNoContent)
+
+        val response = redisService.get("refreshToken")
+        assertThat(response).isEqualTo("blacklisted")
     }
 }
