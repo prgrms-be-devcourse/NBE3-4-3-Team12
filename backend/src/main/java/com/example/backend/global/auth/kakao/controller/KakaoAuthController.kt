@@ -3,7 +3,6 @@ package com.example.backend.global.auth.kakao.controller
 import com.example.backend.global.auth.kakao.dto.KakaoTokenResponseDto
 import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto
 import com.example.backend.global.auth.kakao.service.KakaoAuthService
-import com.example.backend.global.auth.model.CustomUserDetails
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.response.ApiResponse
 import com.example.backend.global.response.ErrorResponse
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -95,7 +93,7 @@ class KakaoAuthController(
         val loginDto = kakaoAuthService.login(kakaoId, kakaoTokenDto)
 
         cookieService.addAccessTokenToCookie(loginDto.accessToken, response)
-        cookieService.addRefreshTokenToCookie(loginDto.refreshToken, response)
+        cookieService.addRefreshTokenToCookieWithSameSiteNone(loginDto.refreshToken, response)
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .headers(headers)
@@ -104,13 +102,13 @@ class KakaoAuthController(
 
     /**
      * 카카오 로그아웃 옵션 선택 페이지로 리다이렉트
-     * @param customUserDetails
+     * @param
      * @return
      */
     @GetMapping("/logout")
-    fun logout(@AuthenticationPrincipal customUserDetails: CustomUserDetails): ResponseEntity<Void> {
+    fun kakaoLogout(): ResponseEntity<Void> {
         val headers = HttpHeaders()
-        headers.location = URI.create(kakaoAuthService.getKakaoLogoutUrl(customUserDetails.userId))
+        headers.location = URI.create(kakaoAuthService.getKakaoLogoutUrl())
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .headers(headers).body(null)
@@ -118,10 +116,13 @@ class KakaoAuthController(
 
     @GetMapping("/logout/callback")
     fun handleKakaoLogoutCallback(
+        request: HttpServletRequest,
         response: HttpServletResponse,
-        @RequestParam("state") userId: Long
     ): ResponseEntity<ApiResponse<String>> {
-        kakaoAuthService.logout(userId, response)
+
+        val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+        kakaoAuthService.logout(refreshToken)
+        cookieService.clearTokenFromCookie(response)
 
         val headers = HttpHeaders()
         headers.location = URI.create(clientBaseUrl)

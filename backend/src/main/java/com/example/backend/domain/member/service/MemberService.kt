@@ -1,10 +1,8 @@
 package com.example.backend.domain.member.service
 
 import com.example.backend.domain.member.dto.MemberInfoDto
-import com.example.backend.domain.member.dto.MemberInfoDto.Companion.of
 import com.example.backend.domain.member.dto.MemberModifyRequestDto
 import com.example.backend.domain.member.entity.Member
-import com.example.backend.domain.member.entity.Member.Companion.of
 import com.example.backend.domain.member.exception.MemberErrorCode
 import com.example.backend.domain.member.exception.MemberException
 import com.example.backend.domain.member.repository.MemberRepository
@@ -54,16 +52,7 @@ class MemberService(
 
     @Transactional
     fun join(kakaoUserInfoDto: KakaoUserInfoResponseDto) {
-        memberRepository.save(of(kakaoUserInfoDto))
-    }
-
-    @Transactional(readOnly = true)
-    fun findByKakaoRefreshToken(refreshToken: String): Member {
-        return memberRepository.findByKakaoRefreshToken(refreshToken).orElseThrow {
-            MemberException(
-                MemberErrorCode.MEMBER_NOT_FOUND
-            )
-        }
+        memberRepository.save(Member.of(kakaoUserInfoDto))
     }
 
     @Transactional

@@ -19,6 +19,4 @@ interface MemberRepository : JpaRepository<Member, Long> {
                 "FROM Member m WHERE m.id = :id"
     )
     fun findMemberInfoDtoById(id: Long): Optional<MemberInfoDto>
-
-    fun findByKakaoRefreshToken(kakaoRefreshToken: String): Optional<Member>
 }
