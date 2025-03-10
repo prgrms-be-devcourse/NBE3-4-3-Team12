@@ -77,7 +77,6 @@ class GroupService(
     @Transactional
     fun deleteGroup(id : Long) {
         val group : Group = groupRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
-        checkValidity(group.status)
 		if (group.status == GroupStatus.COMPLETED){
 			group.updateStatus(GroupStatus.DELETED)
 		}
@@ -154,7 +153,7 @@ class GroupService(
     fun getLocationOfCompletedGroup(memberId: Long): List<GroupLocationDto> {
         val groups : List<Group> = groupRepository.findCompletedGroupsByMemberId(memberId)
         if (groups.isEmpty()) {
-            throw GroupException(GroupErrorCode.NOT_FOUND_LIST)
+            return emptyList()
         }
         return groups.map { group ->
             val location : VoteResultDto = voteService.getMostVotedLocations(group.id)
