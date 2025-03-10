@@ -12,4 +12,9 @@ class GroupViewService(private val redisTemplate: StringRedisTemplate) {
         val key = "$viewKeyPrefix$groupId"
         redisTemplate.opsForValue().increment(key)
     }
+
+    fun getViewCount(groupId: Long): Long {
+        val key = "$viewKeyPrefix$groupId"
+        return redisTemplate.opsForValue().get(key)?.toLong() ?: 0
+    }
 }
