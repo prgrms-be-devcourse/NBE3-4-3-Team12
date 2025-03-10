@@ -61,7 +61,7 @@ class AdminControllerTest(
         val member = Member(100L, "testUser", "test@test.com")
         memberRepository.save(member)
 
-        val group = Group("운동모임", "운동 하는 사람들의 모임", member, GroupStatus.RECRUITING, 10)
+        val group = Group("????", "?? ?? ???? ??", member, GroupStatus.RECRUITING, 10)
         return groupRepository.save(group).id!!
     }
 
@@ -74,7 +74,7 @@ class AdminControllerTest(
 
 
     @Test
-    @DisplayName("로그인 성공 테스트")
+    @DisplayName("??? ?? ???")
     fun loginSuccessTest() {
         val loginResponse = loginAndGetResponse()
 
@@ -90,7 +90,7 @@ class AdminControllerTest(
     }
 
     @Test
-    @DisplayName("로그아웃 성공 테스트")
+    @DisplayName("???? ?? ???")
     fun logoutSuccessTest() {
         val loginResponse = loginAndGetResponse()
 
@@ -115,7 +115,7 @@ class AdminControllerTest(
     }
 
     @Test
-    @DisplayName("관리자 그룹 삭제 테스트")
+    @DisplayName("??? ?? ?? ???")
     fun deleteAdminTest() {
         val groupId = createGroupResponse()
 
