@@ -156,10 +156,10 @@ class KakaoAuthService(
             redisService.addBlackList(refreshToken, jwtUtil.getRefreshTokenExpirationTime())
             saveRefreshToken(kakaoTokenDto.refreshToken, kakaoMemberId)
 
-            return MemberTokenReissueDto.of(memberInfoDto, kakaoTokenDto.refreshToken)
+            return MemberTokenReissueDto(memberInfoDto, kakaoTokenDto.refreshToken)
         }
 
-        return MemberTokenReissueDto.of(memberInfoDto, refreshToken)
+        return MemberTokenReissueDto(memberInfoDto, refreshToken)
     }
 
     private fun saveRefreshToken(refreshToken: String, kakaoMemberId: Long) {
