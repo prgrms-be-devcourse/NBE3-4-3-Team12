@@ -1,6 +1,5 @@
-package com.example.backend.domain.member
+package com.example.backend.domain.member.controller
 
-import com.example.backend.domain.member.controller.MemberController
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
 import com.example.backend.global.util.TestTokenProvider
@@ -10,7 +9,6 @@ import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest

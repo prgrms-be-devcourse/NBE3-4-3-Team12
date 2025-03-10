@@ -1,8 +1,7 @@
-package com.example.backend.test.category
+package com.example.backend.domain.category.controller
 
 import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.repository.AdminRepository
-import com.example.backend.domain.category.controller.CategoryController
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,12 +35,16 @@ class CategoryControllerTest {
 
     @Autowired
     private lateinit var adminRepository: AdminRepository
+
     @Autowired
     private lateinit var mockMvc: MockMvc
+
     @Autowired
     private lateinit var memberRepository: MemberRepository
+
     @Autowired
     private lateinit var categoryRepository: CategoryRepository
+
     @PersistenceContext
     private lateinit var em: EntityManager
 
@@ -94,12 +96,14 @@ class CategoryControllerTest {
             post("/categories")
                 .cookie(Cookie("accessToken", accessToken))
                 .cookie(Cookie("refreshToken", refreshToken))
-                .content("""
+                .content(
+                    """
             {
                 "type": "HOBBY",
                 "name": "새로운 취미 카테고리"
             }
-        """)
+        """
+                )
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
@@ -147,12 +151,14 @@ class CategoryControllerTest {
             put("/categories/{id}", 1L)
                 .cookie(Cookie("accessToken", accessToken))
                 .cookie(Cookie("refreshToken", refreshToken))
-                .content("""
+                .content(
+                    """
                     {
                         "type": "EXERCISE",
                         "name": "수정된 카테고리"
                     }
-                """)
+                """
+                )
                 .contentType(MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 

@@ -1,4 +1,4 @@
-package com.example.backend.test.voter
+package com.example.backend.domain.voter.controller
 
 import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.group.entity.GroupStatus

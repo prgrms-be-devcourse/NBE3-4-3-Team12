@@ -1,8 +1,7 @@
-package com.example.backend.domain.member
+package com.example.backend.domain.member.repository
 
 import com.example.backend.domain.member.dto.MemberInfoDto
 import com.example.backend.domain.member.entity.Member
-import com.example.backend.domain.member.repository.MemberRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional

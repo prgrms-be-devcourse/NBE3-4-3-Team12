@@ -1,11 +1,10 @@
-package com.example.backend.test.voter
+package com.example.backend.domain.voter.repository
 
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
 import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
 import com.example.backend.domain.voter.entity.Voter
-import com.example.backend.domain.voter.repository.VoterRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName

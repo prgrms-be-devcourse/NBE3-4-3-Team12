@@ -1,9 +1,8 @@
-package com.example.backend.domain.admin
+package com.example.backend.domain.admin.repository
 
 import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.exception.AdminErrorCode
 import com.example.backend.domain.admin.exception.AdminException
-import com.example.backend.domain.admin.repository.AdminRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -26,18 +25,18 @@ class AdminRepositoryTest(
     @PersistenceContext
     private lateinit var em: EntityManager
 
-        @BeforeEach
-        fun init() {
-            em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
-            var admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
-            adminRepository.save(admin)
-        }
+    @BeforeEach
+    fun init() {
+        em.createNativeQuery("ALTER TABLE admin ALTER COLUMN id RESTART WITH 1").executeUpdate()
+        var admin = Admin("admin", "\$2a\$12\$wS8w9vGzZ345XlGazbp8mekCkPyKoPFbky96pr0EqW.6I0Xtdt.YO")
+        adminRepository.save(admin)
+    }
 
     @Test
     @DisplayName("save() 검증 테스트")
     fun save() {
         val admin = adminRepository.findById(1)
-            .orElseThrow{AdminException(AdminErrorCode.NOT_FOUND_ADMIN)}
+            .orElseThrow { AdminException(AdminErrorCode.NOT_FOUND_ADMIN) }
         assertThat(admin.adminName).isEqualTo("admin")
     }
 
