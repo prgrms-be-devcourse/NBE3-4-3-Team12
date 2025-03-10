@@ -1,10 +1,14 @@
 package com.example.backend.global.auth.jwt;
 
-import com.example.backend.domain.admin.service.AdminGetService
+import com.example.backend.domain.admin.exception.AdminErrorCode
+import com.example.backend.domain.admin.exception.AdminException
+import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.global.auth.exception.AuthErrorCode
+import com.example.backend.global.auth.exception.AuthException
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.response.ErrorResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
@@ -20,7 +24,8 @@ import java.io.IOException
 class AdminAuthFilter(
 	private val jwtUtil: JwtUtil,
 	private val tokenProvider: TokenProvider,
-	private val adminGetService: AdminGetService,
+	private val adminRepository: AdminRepository,
+	private val redisService: RedisService,
 	private val cookieService: CookieService,
 	private val objectMapper: ObjectMapper
 ) : OncePerRequestFilter() {
@@ -47,16 +52,19 @@ class AdminAuthFilter(
 					chain.doFilter(request, response)
 				}
 				TokenStatus.EXPIRED -> {
-					if (jwtUtil.isRefreshTokenValid(refreshToken)) {
-						val admin = adminGetService.getAdminByRefreshToken(refreshToken)
-						val newAccessToken = tokenProvider.generateToken(admin)
-						cookieService.addAccessTokenToCookie(newAccessToken, response)
-						val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
-						SecurityContextHolder.getContext().authentication = newAuthentication
-						chain.doFilter(request, response)
-					} else {
-						handleException(AuthErrorCode.TOKEN_REISSUE_FAILED, request, response)
-					}
+					jwtUtil.isRefreshTokenValid(refreshToken)
+					val adminName = redisService.get(refreshToken)
+						?: throw AuthException(AuthErrorCode.INVALID_TOKEN)
+
+					val admin = adminRepository.findByAdminName(adminName)
+						?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
+
+					val newAccessToken = tokenProvider.generateToken(admin)
+					cookieService.addAccessTokenToCookie(newAccessToken, response)
+
+					val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
+					SecurityContextHolder.getContext().authentication = newAuthentication
+					chain.doFilter(request, response)
 				}
 				TokenStatus.MALFORMED -> handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
 				TokenStatus.INVALID -> handleException(AuthErrorCode.INVALID_TOKEN, request, response)
@@ -75,7 +83,14 @@ class AdminAuthFilter(
 
 	@Throws(IOException::class)
 	private fun handleException(ex: AuthErrorCode, request: HttpServletRequest, response: HttpServletResponse) {
+		val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+
+		if (!refreshToken.isNullOrEmpty()) {
+			redisService.delete(refreshToken)
+		}
 		cookieService.clearTokenFromCookie(response)
+		SecurityContextHolder.clearContext()
+
 		response.status = ex.httpStatus.value()
 		response.contentType = "application/json;charset=UTF-8"
 
