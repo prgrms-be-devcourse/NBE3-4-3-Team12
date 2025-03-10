@@ -37,6 +37,22 @@ export default function GroupDetailPage() {
         longitude: number;
     } | null>(null);
 
+    useEffect(() => {
+        async function fetchCurrentUser() {
+            try {
+                const currentUser = await getCurrentUser();
+                setCurrentUser(currentUser.data);
+                console.log("현재 사용자 정보:", currentUser.data);
+            } catch (error) {
+                console.error("현재 사용자 정보를 불러오는 중 오류 발생:", error);
+                // 로그인 안된 상태에서는 카카오 로그인 페이지로 리디렉션
+                window.location.href = "http://localhost:8080/auth/kakao/login";
+            }
+        }
+
+        fetchCurrentUser();
+    }, []);
+
     const handleDelete = async () => {
         if (group) {
             try {
