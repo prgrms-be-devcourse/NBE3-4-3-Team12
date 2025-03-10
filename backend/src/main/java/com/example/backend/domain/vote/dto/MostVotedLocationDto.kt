@@ -1,8 +1,10 @@
 package com.example.backend.domain.vote.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class MostVotedLocationDto(
-    val location : String,
-    val address: String,
-    val latitude: Double,
-    val longitude: Double
+    @JsonProperty("location") val location: String,
+    @JsonProperty("address") val address: String,
+    @JsonProperty("latitude") val latitude: Double,
+    @JsonProperty("longitude") val longitude: Double
 )
