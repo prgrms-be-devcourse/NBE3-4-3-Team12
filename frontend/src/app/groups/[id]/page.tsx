@@ -22,6 +22,7 @@ type GroupDetail = {
     memberId: number;
     description: string;
     field: Category[];
+    viewCount: number;
 };
 
 export default function GroupDetailPage() {
@@ -74,6 +75,7 @@ export default function GroupDetailPage() {
                         field: Array.isArray(groupData.category)
                             ? groupData.category
                             : [groupData.category],
+                        viewCount: groupData.viewCount || 0,
                     });
                 }
             } catch (error) {
@@ -168,6 +170,12 @@ export default function GroupDetailPage() {
                                 ))}
                             </div>
                         </div>
+                    </div>
+
+                    {/* 조회수 표시 */}
+                    <div className="flex items-center space-x-2 mt-4">
+                        <span className="font-semibold text-gray-900">조회수</span>
+                        <span className="text-gray-700">{group.viewCount}회</span> {/* 조회수 출력 */}
                     </div>
 
                     {/* 프로젝트 설명 */}
