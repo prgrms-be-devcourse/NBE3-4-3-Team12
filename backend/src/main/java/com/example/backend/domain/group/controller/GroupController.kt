@@ -40,9 +40,10 @@ class GroupController(
     }
 
     @GetMapping("/{groupId}")
-    fun getGroup(@PathVariable("groupId") id : Long) : ResponseEntity<GroupResponseDto>{
+    fun getGroup(@PathVariable("groupId") id : Long, @AuthenticationPrincipal customUserDetails : CustomUserDetails) : ResponseEntity<GroupResponseDto>{
         log.info("Getting group by groupId {}$id");
-        groupViewService.incrementViewCount(id);
+        val memberId : Long = customUserDetails.userId
+        groupViewService.incrementViewCount(id,memberId);
         val response : GroupResponseDto = groupService.findGroup(id)
         return  ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
