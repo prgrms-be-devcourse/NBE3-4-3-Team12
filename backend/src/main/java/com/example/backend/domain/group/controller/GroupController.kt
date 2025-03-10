@@ -5,7 +5,6 @@ import com.example.backend.domain.group.service.GroupService
 import com.example.backend.domain.group.service.GroupViewService
 import com.example.backend.global.auth.model.CustomUserDetails
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.sqm.tree.SqmNode.log
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode
@@ -14,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
-@Slf4j
 @RestController
 @RequestMapping("/groups")
 class GroupController(

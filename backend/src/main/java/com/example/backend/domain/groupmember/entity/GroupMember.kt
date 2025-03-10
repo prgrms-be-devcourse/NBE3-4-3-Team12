@@ -4,8 +4,6 @@ import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.global.base.BaseEntity
 import jakarta.persistence.*
-import lombok.Getter
-import lombok.NoArgsConstructor
 
 @Entity
 class GroupMember : BaseEntity {
