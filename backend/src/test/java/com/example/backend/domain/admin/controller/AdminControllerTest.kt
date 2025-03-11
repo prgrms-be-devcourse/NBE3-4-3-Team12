@@ -163,7 +163,7 @@ class AdminControllerTest(
     @Test
     @DisplayName("유저 검색 테스트")
     fun searchMemberTest() {
-        memberRepository.deleteAll()
+        em.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate()
         val loginResponse = loginAndGetResponse()
 
         val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
