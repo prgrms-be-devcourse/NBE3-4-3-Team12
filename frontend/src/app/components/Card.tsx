@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import {joinGroup} from "@/app/api";
+import React from "react";
 
 type Category = {
   id: number;

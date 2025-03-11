@@ -21,7 +21,7 @@ export default function EditGroupPage() {
     useEffect(() => {
         async function fetchGroup() {
             try {
-                const data = await getGroup(id);
+                const data = await getGroup(Number(id));
                 console.log("불러온 그룹 데이터:", data);
                 setTitle(data.title);
                 setDescription(data.description);
@@ -55,7 +55,7 @@ export default function EditGroupPage() {
         console.log("보내는 데이터:", requestData); // 백엔드로 보내기 전 확인
 
         try {
-            const response = await updateGroup(id, requestData); // PUT 요청 24, 58 stringdmfh emfdj
+            const response = await updateGroup(Number(id), requestData); // PUT 요청 24, 58 stringdmfh emfdj
             console.log("그룹 수정 성공:", response);
             alert("그룹 정보가 성공적으로 수정되었습니다!");
             router.push("/");
@@ -94,7 +94,7 @@ export default function EditGroupPage() {
                                 const newStatus = e.target.value as GroupStatus;
                                 if (newStatus === status) {
                                     // 같은 값이어도 강제로 업데이트 트리거
-                                    setStatus("");
+                                    setStatus(newStatus);
                                     setTimeout(() => setStatus(newStatus), 0);
                                 } else {
                                     setStatus(newStatus);
@@ -114,7 +114,7 @@ export default function EditGroupPage() {
                         <input
                             type="number"
                             value={maxParticipants}
-                            onChange={(e) => setMaxParticipants(e.target.value)}
+                            onChange={(e) => setMaxParticipants(Number(e.target.value))}
                             className="w-16 px-2 text-center border border-gray-300 rounded-md"
                         />
                     </div>

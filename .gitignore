@@ -37,9 +37,9 @@ out/
 .vscode/
 
 #.gitignore yml 로컬 프로필 설정
-backend/src/main/resources/application-local.yml
-backend/src/main/resources/application-test.yml
-backend/src/test/resources/application-test.yml
+application-local.yml
+application-test.yml
+application-docker.yml
 
 #OS
 .DS_Store
@@ -58,3 +58,9 @@ node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+#docker
+docker-compose.yml
+redis.conf
+/backend/Dockerfile
+/frontend/Dockerfile
