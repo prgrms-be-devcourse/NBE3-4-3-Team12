@@ -3,6 +3,7 @@ package com.example.backend.domain.group.dto;
 import com.example.backend.domain.category.dto.CategoryResponseDto
 import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.group.entity.GroupStatus
+import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDateTime
 
 data class GroupResponseDto(
@@ -14,8 +15,9 @@ data class GroupResponseDto(
     val maxParticipants : Int,
     val status : GroupStatus,
     val category : List<CategoryResponseDto>,
-    val createdAt : LocalDateTime,
-    val modifiedAt : LocalDateTime,
+
+    val createdAt: String,
+    val modifiedAt: String,
     val viewCount : Long
 ) {
     constructor(group: Group) : this(
@@ -27,8 +29,9 @@ data class GroupResponseDto(
         maxParticipants = group.maxParticipants,
         status = group.status,
         category = group.groupCategories.map { CategoryResponseDto(it.category) },
-        createdAt = group.createdAt!!,
-        modifiedAt = group.modifiedAt!!,
+        createdAt = group.createdAt?.toString() ?: "",
+        modifiedAt = group.modifiedAt?.toString() ?: "",
+
         viewCount = 0
     )
     constructor(group: Group, viewCount: Long) : this(
@@ -40,8 +43,8 @@ data class GroupResponseDto(
         maxParticipants = group.maxParticipants,
         status = group.status,
         category = group.groupCategories.map { CategoryResponseDto(it.category) },
-        createdAt = group.createdAt!!,
-        modifiedAt = group.modifiedAt!!,
+        createdAt = group.createdAt?.toString() ?: "",
+        modifiedAt = group.modifiedAt?.toString() ?: "",
         viewCount = viewCount
     )
 }
