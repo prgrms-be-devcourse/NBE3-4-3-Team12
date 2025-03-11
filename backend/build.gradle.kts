@@ -36,6 +36,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web-services")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     runtimeOnly("com.h2database:h2")
