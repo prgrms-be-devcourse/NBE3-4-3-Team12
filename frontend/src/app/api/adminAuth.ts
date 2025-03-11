@@ -1,5 +1,11 @@
 import {api} from "./axiosInstance";
 
+interface MemberInfoDto {
+    id: string;
+    nickname: string;
+    email?: string;
+}
+
 // 관리자 로그인
 export async function adminLogin(requestData: { adminName: string; password: string }) {
     try {

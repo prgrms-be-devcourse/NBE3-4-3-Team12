@@ -31,11 +31,9 @@ export default function GroupDetailPage() {
     const [group, setGroup] = useState<GroupDetail | null>(null);
     const [currentUser, setCurrentUser] = useState<{ username: string, id: number } | null>(null);
     const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
-    const [selectedLocations, setSelectedLocations] = useState<{
-        address: string;
-        latitude: number;
-        longitude: number;
-    } | null>(null);
+    const [selectedLocations, setSelectedLocations] = useState<
+        { address: string; latitude: number; longitude: number }[]
+    >([]);
 
     useEffect(() => {
         async function fetchCurrentUser() {
@@ -130,7 +128,6 @@ export default function GroupDetailPage() {
     if (!group) return <p className="text-center text-gray-500">로딩 중...</p>;
 
     const isGroupOwner = currentUser && currentUser.id && group.memberId === currentUser.id;
-    const isVoteComplete = currentUser && currentUser.id && isVoteModalOpen;
     console.log("그룹 소유자 여부:", isGroupOwner);
 
     return (
