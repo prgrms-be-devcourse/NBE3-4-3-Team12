@@ -8,6 +8,7 @@ import com.example.backend.global.auth.kakao.dto.LoginResponseDto
 import com.example.backend.global.auth.kakao.exception.KakaoAuthErrorCode
 import com.example.backend.global.auth.kakao.exception.KakaoAuthException
 import com.example.backend.global.auth.kakao.util.KakaoAuthUtil
+import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
 import com.example.backend.global.redis.service.RedisService
 import org.springframework.beans.factory.annotation.Value
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit
 class KakaoAuthService(
     private val kakaoAuthUtil: KakaoAuthUtil,
     private val webClient: WebClient,
+    private val jwtUtil: JwtUtil,
     private val tokenProvider: TokenProvider,
     private val memberService: MemberService,
     private val redisService: RedisService,
@@ -115,7 +117,7 @@ class KakaoAuthService(
     @Transactional
     fun logout(refreshToken: String?) {
         // 리프레시 토큰이 존재하면 삭제
-        refreshToken?.let { redisService.delete(refreshToken.toString()) }
+        refreshToken?.let { redisService.addBlackList(refreshToken.toString(), jwtUtil.getRefreshTokenExpirationTime()) }
 
         SecurityContextHolder.clearContext()
     }
@@ -151,7 +153,7 @@ class KakaoAuthService(
 
         // 리프레시 토큰은 body에 있을 경우에만 갱신
         if (kakaoTokenDto.refreshToken != null) {
-            redisService.delete(refreshToken)
+            redisService.addBlackList(refreshToken, jwtUtil.getRefreshTokenExpirationTime())
             saveRefreshToken(kakaoTokenDto.refreshToken, kakaoMemberId)
 
             return MemberTokenReissueDto.of(memberInfoDto, kakaoTokenDto.refreshToken)

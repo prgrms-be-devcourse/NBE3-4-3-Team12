@@ -18,6 +18,7 @@ import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
 import com.example.backend.domain.voter.entity.Voter
 import com.example.backend.domain.voter.repository.VoterRepository
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.util.TestTokenProvider
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -26,11 +27,14 @@ import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -60,6 +64,8 @@ class GroupControllerTest {
     private lateinit var voteRepository: VoteRepository
     @Autowired
     private lateinit var voterRepository: VoterRepository
+    @MockitoBean
+    private lateinit var redisService: RedisService
 
     @Autowired
     private lateinit var mvc : MockMvc
@@ -67,6 +73,7 @@ class GroupControllerTest {
     private lateinit var em: EntityManager
 
     private lateinit var accessToken: String
+    private lateinit var refreshToken: String
 
     @BeforeEach
     fun setUp() {
@@ -84,6 +91,9 @@ class GroupControllerTest {
         accessToken = tokenProvider.generateMemberAccessToken(
             member.id!!, member.nickname, member.email
         )
+        refreshToken = tokenProvider.generateMemberRefreshToken()
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
+
         val category = Category("testCategory", CategoryType.STUDY)
         categoryRepository.save(category)
         val categories : MutableList<Category> = categoryRepository.findAll()
@@ -114,6 +124,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
                 post("/groups")
                         .cookie(Cookie("accessToken",accessToken))
+                        .cookie(Cookie("refreshToken",refreshToken))
                         .content("""
                                 {
                                   "title": "제목1",
@@ -187,6 +198,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
                 put("/groups/{id}",1L)
                         .cookie( Cookie("accessToken",accessToken))
+                        .cookie(Cookie("refreshToken",refreshToken))
                         .content("""
                                 {
                                   "title": "제목2",
@@ -214,6 +226,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
                 delete("/groups/{id}",1L)
                         .cookie( Cookie("accessToken",accessToken))
+                        .cookie(Cookie("refreshToken",refreshToken))
                         .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
@@ -228,6 +241,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
             post("/groups/join")
                 .cookie(Cookie("accessToken",accessToken))
+                .cookie(Cookie("refreshToken",refreshToken))
                 .content("""
                     {
                         "groupId": 1,
@@ -248,6 +262,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
             get("/groups/member")
                 .cookie( Cookie("accessToken",accessToken))
+                .cookie(Cookie("refreshToken",refreshToken))
                 .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 
@@ -263,6 +278,7 @@ class GroupControllerTest {
         val resultActions : ResultActions = mvc.perform(
             get("/groups/location")
                 .cookie( Cookie("accessToken",accessToken))
+                .cookie(Cookie("refreshToken",refreshToken))
                 .contentType( MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8))
         ).andDo(print())
 

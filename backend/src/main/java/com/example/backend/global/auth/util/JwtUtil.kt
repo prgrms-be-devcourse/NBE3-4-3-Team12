@@ -83,7 +83,7 @@ class JwtUtil(
 	}
 
 	fun isRefreshTokenValid(refreshToken: String) {
-		if (redisService.exists(refreshToken)) {
+		if (redisService.isValidRefreshToken(refreshToken)) {
 			return
 		}
 		throw AuthException(AuthErrorCode.TOKEN_EXPIRED)

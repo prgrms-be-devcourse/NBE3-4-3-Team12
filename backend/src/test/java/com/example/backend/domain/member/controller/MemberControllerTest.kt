@@ -2,6 +2,7 @@ package com.example.backend.domain.member.controller
 
 import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.util.TestTokenProvider
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -9,6 +10,8 @@ import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,6 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
@@ -41,10 +45,14 @@ class MemberControllerTest {
     @Autowired
     private lateinit var memberRepository: MemberRepository
 
+    @MockitoBean
+    private lateinit var redisService: RedisService
+
     @PersistenceContext
     private lateinit var em: EntityManager
 
     private lateinit var accessToken: String
+    private lateinit var refreshToken: String
 
     @BeforeEach
     fun setUp() {
@@ -56,6 +64,10 @@ class MemberControllerTest {
         accessToken = tokenProvider.generateMemberAccessToken(
             member.id!!, member.nickname, member.email
         )
+
+        // 테스트 요청 시 필요한 인증을 위해 리프레시 토큰 생성
+        refreshToken = tokenProvider.generateMemberRefreshToken()
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
     }
 
     @Test
@@ -63,9 +75,10 @@ class MemberControllerTest {
     fun getCurrentMemberTest() {
         // given
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
-        val resultActions = mockMvc.perform(get("/members").cookie(accessTokenCookie))
+        val resultActions = mockMvc.perform(get("/members").cookie(accessTokenCookie).cookie(refreshTokenCookie))
 
         // then
         resultActions
@@ -79,14 +92,17 @@ class MemberControllerTest {
     @Test
     @DisplayName("로그인 되지 않은 사용자 정보 조회 실패 테스트")
     fun getCurrentMemberWhenNoCookieTest() {
+        // given
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
+
         // when
-        val resultActions = mockMvc.perform(get("/members"))
+        val resultActions = mockMvc.perform(get("/members").cookie(refreshTokenCookie))
 
         // then
         resultActions
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("인증에 실패했습니다."))
-            .andExpect(jsonPath("$.code").value("401-1"))
+            .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.message").value("토큰 갱신에 실패했습니다."))
+            .andExpect(jsonPath("$.code").value("500"))
     }
 
     @Test
@@ -94,6 +110,7 @@ class MemberControllerTest {
     fun modifyTest() {
         // given
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
@@ -107,6 +124,7 @@ class MemberControllerTest {
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -123,6 +141,7 @@ class MemberControllerTest {
     fun modifyFailWhenBlankNicknameTest() {
         // given
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
@@ -136,6 +155,7 @@ class MemberControllerTest {
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -153,6 +173,7 @@ class MemberControllerTest {
     fun modifyFailWhenTooLongNicknameTest() {
         // given
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
@@ -166,6 +187,7 @@ class MemberControllerTest {
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -181,6 +203,9 @@ class MemberControllerTest {
     @Test
     @DisplayName("사용자 정보 수정 실패(로그인되지 않은 상태) 테스트")
     fun modifyFailWhenNoCookieTest() {
+        // given
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
+
         // when
         val resultActions = mockMvc.perform(
             put("/members")
@@ -192,13 +217,14 @@ class MemberControllerTest {
                     """.trimIndent()
                 )
                 .contentType(MediaType.APPLICATION_JSON)
+                .cookie(refreshTokenCookie)
         )
 
         // then
         resultActions
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("인증에 실패했습니다."))
-            .andExpect(jsonPath("$.code").value("401-1"))
+            .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.message").value("토큰 갱신에 실패했습니다."))
+            .andExpect(jsonPath("$.code").value("500"))
     }
 }
 

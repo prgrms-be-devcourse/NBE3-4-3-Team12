@@ -3,7 +3,6 @@ package com.example.backend.global.util
 import com.example.backend.global.auth.util.JwtUtil
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.util.*
@@ -28,5 +27,9 @@ class TestTokenProvider(
             .setExpiration(Date(System.currentTimeMillis() + 10000)) // 테스트용으로만 사용될 토큰이므로 보안상 만료 시간 10초로 설정
             .signWith(jwtUtil.key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 키
             .compact()
+    }
+
+    fun generateMemberRefreshToken(): String {
+        return UUID.randomUUID().toString()
     }
 }

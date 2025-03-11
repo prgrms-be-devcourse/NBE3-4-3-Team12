@@ -3,6 +3,7 @@ package com.example.backend.domain.vote.controller
 import com.example.backend.domain.vote.dto.VoteRequestDto
 import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.util.TestTokenProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityManager
@@ -10,11 +11,14 @@ import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
@@ -42,10 +46,14 @@ class VoteControllerTest {
     @Autowired
     private lateinit var tokenProvider: TestTokenProvider // 테스트용 토큰 생성용도
 
+    @MockitoBean
+    private lateinit var redisService: RedisService
+
     @PersistenceContext
     private lateinit var em: EntityManager // DB 직접 상호작용
 
     private lateinit var accessToken: String
+    private lateinit var refreshToken: String
     private lateinit var testVote: Vote
     private lateinit var voteRequestDto: VoteRequestDto
 
@@ -58,6 +66,10 @@ class VoteControllerTest {
         accessToken = tokenProvider.generateMemberAccessToken(
             1L, "testUser", "test@test.com"
         )
+
+        // 테스트 요청 시 필요한 인증을 위해 리프레시 토큰 생성
+        refreshToken = tokenProvider.generateMemberRefreshToken()
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
 
         // 테스트용 투표 요청 DTO 생성
         voteRequestDto = VoteRequestDto(
@@ -77,11 +89,13 @@ class VoteControllerTest {
         // given
         val groupId = 1L
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
             post("/votes/groups/$groupId/votes")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(voteRequestDto))
         )
@@ -101,10 +115,12 @@ class VoteControllerTest {
     fun `투표 생성 실패 테스트(인증없음)`() {
         // given
         val groupId = 1L
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when 위와 비교 : accesstoken 없음
         val resultActions = mockMvc.perform(
             post("/votes/groups/$groupId/votes")
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(voteRequestDto))
         )
@@ -112,9 +128,9 @@ class VoteControllerTest {
         // then
         resultActions
             .andDo(print())
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("인증에 실패했습니다."))
-            .andExpect(jsonPath("$.code").value("401-1"))
+            .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.message").value("토큰 갱신에 실패했습니다."))
+            .andExpect(jsonPath("$.code").value("500"))
     }
 
     @Test
@@ -122,11 +138,13 @@ class VoteControllerTest {
         // given
         val groupId = 1L
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
             get("/votes/groups/$groupId/votes")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -143,11 +161,13 @@ class VoteControllerTest {
         val groupId = 1L
         val voteId = testVote.id!!
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
             get("/votes/groups/$groupId/votes/$voteId")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -164,6 +184,7 @@ class VoteControllerTest {
         val groupId = 1L
         val voteId = testVote.id!!
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         val updateRequestDto = VoteRequestDto(
             location = "수정된 장소",
@@ -176,6 +197,7 @@ class VoteControllerTest {
         val resultActions = mockMvc.perform(
             put("/votes/groups/$groupId/votes/$voteId")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequestDto))
         )
@@ -196,11 +218,13 @@ class VoteControllerTest {
         val groupId = 1L
         val voteId = testVote.id!!
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
             delete("/votes/groups/$groupId/votes/$voteId")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then
@@ -217,11 +241,13 @@ class VoteControllerTest {
         // given
         val groupId = 1L
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // when
         val resultActions = mockMvc.perform(
             get("/votes/groups/$groupId/most-voted")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
 
         // then

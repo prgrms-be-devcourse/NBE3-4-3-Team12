@@ -63,4 +63,23 @@ class RedisService(
         val userViewKey = "group:user:viewed:$groupId:$userId"
         redisDao.save(userViewKey, "viewed", 24 * 60 * 60L) // 24시간 동안만 조회한 것으로 처리
     }
+
+    fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {
+        redisDao.save(refreshToken, "blacklisted", expirationTimeInSeconds)
+    }
+
+    fun isValidRefreshToken(key: String): Boolean {
+        return redisDao.get(key) != "blacklisted"
+    }
+
+    fun blackListedMember(kakaoId: String) {
+        val keys = redisDao.findAllKeys() // 모든 키 가져오기 (개선된 `scan` 사용)
+        val values = redisDao.multiGet(keys)// 여러 값 한 번에 가져오기
+
+        keys.zip(values).forEach { (key, value) ->
+            if (value == "kakao: $kakaoId") {
+                redisDao.save(key, "blacklisted") // 블랙리스트 처리
+            }
+        }
+    }
 }

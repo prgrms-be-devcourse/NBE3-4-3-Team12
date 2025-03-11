@@ -44,4 +44,14 @@ class RedisDao(
     fun setExpiration(key: String, expirationTimeInSeconds: Long) {
         redisTemplate.expire(key, expirationTimeInSeconds, TimeUnit.SECONDS)
     }
+
+    // 여러 개의 값 가져오기
+    fun multiGet(keys: Set<String>): List<String?> {
+        return redisTemplate.opsForValue().multiGet(keys) ?: emptyList()
+    }
+
+    // 모든 데이터 반환
+    fun findAllKeys(): Set<String> {
+        return redisTemplate.keys("*")
+    }
 }

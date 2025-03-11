@@ -3,6 +3,9 @@ package com.example.backend.domain.admin.controller;
 import com.example.backend.domain.admin.dto.AdminLoginRequest
 import com.example.backend.domain.admin.service.AdminService
 import com.example.backend.domain.group.service.GroupService
+import com.example.backend.domain.member.dto.MemberInfoDto
+import com.example.backend.global.redis.service.RedisService
+import com.example.backend.global.response.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -15,7 +18,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/admin")
 class AdminController(
 	private val adminService: AdminService,
-	private val groupService: GroupService
+	private val groupService: GroupService,
+	private val redisService: RedisService
 ) {
 
 	// 관리자 로그인
@@ -41,6 +45,13 @@ class AdminController(
 		return ResponseEntity.noContent().build()
 	}
 
+	// 블랙리스트 처리
+	@DeleteMapping("/members/{memberId}/blacklist")
+	fun blacklistMember(@PathVariable memberId: String): ResponseEntity<Void> {
+		redisService.blackListedMember(memberId)
+		return ResponseEntity.noContent().build()
+	}
+
 	// 관리자 인증 확인
 	@GetMapping
 	fun isAdmin(): ResponseEntity<String> {
@@ -52,5 +63,12 @@ class AdminController(
 		} else {
 			ResponseEntity.ok("관리자 인증되었습니다.")
 		}
+	}
+
+	// 닉네임으로 유저 검색
+	@GetMapping("/members/search")
+	fun getMembersByNickName(@RequestParam nickname: String , response: HttpServletResponse): ResponseEntity<ApiResponse<List<MemberInfoDto>>> {
+		val memberInfoDtoList = adminService.findMemberInfoDtosByNickname(nickname)
+		return ResponseEntity.ok().body(ApiResponse.of(memberInfoDtoList))
 	}
 }

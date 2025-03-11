@@ -9,6 +9,7 @@ import com.example.backend.domain.member.entity.Member
 import com.example.backend.domain.member.repository.MemberRepository
 import com.example.backend.domain.vote.entity.Vote
 import com.example.backend.domain.vote.repository.VoteRepository
+import com.example.backend.global.redis.service.RedisService
 import com.example.backend.global.util.TestTokenProvider
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -16,11 +17,14 @@ import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
@@ -52,6 +56,9 @@ class VoterControllerTest {
     @Autowired
     private lateinit var tokenProvider: TestTokenProvider
 
+    @MockitoBean
+    private lateinit var redisService: RedisService
+
     @PersistenceContext
     private lateinit var em: EntityManager
 
@@ -59,6 +66,7 @@ class VoterControllerTest {
     private lateinit var vote: Vote
     private lateinit var member: Member
     private lateinit var accessToken: String
+    private lateinit var refreshToken: String
 
     @BeforeEach // 각 테스트 메서드가 실행되기 전에 매번 실행
     fun setUp() {
@@ -103,6 +111,11 @@ class VoterControllerTest {
         accessToken = tokenProvider.generateMemberAccessToken(
             member.id!!, member.nickname, member.email
         )
+
+        // 테스트 요청 시 필요한 인증을 위해 리프레시 토큰 생성
+        refreshToken = tokenProvider.generateMemberRefreshToken()
+
+        `when`(redisService.isValidRefreshToken(Mockito.anyString())).thenReturn(true)
     }
 
     @Test
@@ -110,11 +123,13 @@ class VoterControllerTest {
     fun addVoter_Success() {
         // JWT 인증을 위한 쿠키 생성
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // 투표자 등록 요청을 실행하고 200 OK 응답을 기대
         mockMvc.perform(
             post("/voters/${group.id}/${vote.id}")
                 .cookie(accessTokenCookie) // 인증 쿠키 추가
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andDo(print())
@@ -126,11 +141,13 @@ class VoterControllerTest {
     fun getVotersByVote_Success() {
         // JWT 인증을 위한 쿠키 생성
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // 테스트를 위해 투표자 추가
         mockMvc.perform(
             post("/voters/${group.id}/${vote.id}")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andDo(print())
@@ -140,6 +157,7 @@ class VoterControllerTest {
         mockMvc.perform(
             get("/voters/${vote.id}")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
         )
             .andDo(print())
             .andExpect(status().isOk)
@@ -150,11 +168,13 @@ class VoterControllerTest {
     fun removeVoter_Success() {
         // JWT 인증을 위한 쿠키 생성
         val accessTokenCookie = Cookie("accessToken", accessToken)
+        val refreshTokenCookie = Cookie("refreshToken", refreshToken)
 
         // 삭제 테스트 전에 투표자를 먼저 등록하여 상태를 세팅
         mockMvc.perform(
             post("/voters/${group.id}/${vote.id}")
                 .cookie(accessTokenCookie)
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andDo(print())
@@ -164,6 +184,7 @@ class VoterControllerTest {
         mockMvc.perform(
             delete("/voters/${group.id}/${vote.id}")
                 .cookie(accessTokenCookie) // 인증 쿠키 추가
+                .cookie(refreshTokenCookie)
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andDo(print())

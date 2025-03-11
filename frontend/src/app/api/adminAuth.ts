@@ -43,3 +43,23 @@ export async function adminDeleteGroup(groupId: number): Promise<any> {
         return null; // 실패 시 null 반환
     }
 }
+
+// 관리자 블랙리스트 처리
+export async function blacklistMember(memberId: string): Promise<void> {
+    try {
+        await api.delete(`/admin/members/${memberId}/blacklist`);
+    } catch (error) {
+        console.error("블랙리스트 처리 실패:", error);
+    }
+}
+
+// 닉네임으로 유저 검색
+export async function getMembersByNickName(nickname: string): Promise<MemberInfoDto[]> {
+    try {
+        const response = await api.get(`/admin/members/search`, { params: { nickname } });
+        return response.data;
+    } catch (error) {
+        console.error("유저 검색 실패:", error);
+        throw error;
+    }
+}
