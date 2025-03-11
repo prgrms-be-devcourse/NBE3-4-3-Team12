@@ -23,7 +23,7 @@ class MemberController(
     ): ResponseEntity<ApiResponse<MemberInfoDto>> {
 
         val memberDto = MemberInfoDto(customUserDetails)
-        return ResponseEntity.ok().body(ApiResponse.of(memberDto))
+        return ResponseEntity.ok().body(ApiResponse(memberDto))
     }
 
     @PutMapping
@@ -34,6 +34,6 @@ class MemberController(
     ): ResponseEntity<ApiResponse<MemberInfoDto>> {
 
         val memberInfoDto = memberService.modify(customUserDetails.userId, memberModifyDto, response)
-        return ResponseEntity.ok().body(ApiResponse.of(memberInfoDto))
+        return ResponseEntity.ok().body(ApiResponse(memberInfoDto))
     }
 }

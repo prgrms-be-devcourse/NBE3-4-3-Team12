@@ -69,6 +69,6 @@ class AdminController(
 	@GetMapping("/members/search")
 	fun getMembersByNickName(@RequestParam nickname: String , response: HttpServletResponse): ResponseEntity<ApiResponse<List<MemberInfoDto>>> {
 		val memberInfoDtoList = adminService.findMemberInfoDtosByNickname(nickname)
-		return ResponseEntity.ok().body(ApiResponse.of(memberInfoDtoList))
+		return ResponseEntity.ok().body(ApiResponse(memberInfoDtoList))
 	}
 }

@@ -99,7 +99,7 @@ class KakaoAuthController(
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .headers(headers)
-            .body(ApiResponse.of<Any>("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname))
+            .body(ApiResponse<Any>("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname))
     }
 
     /**
@@ -130,6 +130,6 @@ class KakaoAuthController(
         headers.location = URI.create(clientBaseUrl)
 
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers).body(ApiResponse.of("성공적으로 로그아웃 되었습니다."))
+            .headers(headers).body(ApiResponse("성공적으로 로그아웃 되었습니다."))
     }
 }
