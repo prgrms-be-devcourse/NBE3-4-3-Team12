@@ -36,9 +36,19 @@ class GroupTopViewService(
             groupResponseDto
         }
     }
+    fun getSavedTop3ViewedGroups(): List<GroupResponseDto> {
+        val topGroupIds = redisService.get("group:top3")
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.mapNotNull { it.toLongOrNull() }
+            ?: emptyList()
+        return topGroupIds.mapNotNull { groupId ->
+            var groupResponseDto = redisService.getGroupInfo(groupId)
+            groupResponseDto
+        }
+    }
 
-
-    @Scheduled(cron = "0 0 0 * * SUN")
+    @Scheduled(cron = "0 0 0 * * *")
     fun showTop3Posts() {
         redisService.delete(topGroupKey)
         val topPosts = getTop3ViewedGroups()
