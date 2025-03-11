@@ -70,13 +70,12 @@ class GroupService(
     }
 
     @Transactional(readOnly = true)
-    fun findGroup(id : Long) : GroupResponseDto{
+    fun findGroup(id: Long): GroupResponseDto {
         val group = groupRepository.findById(id)
             .orElseThrow { throw GroupException(GroupErrorCode.NOT_FOUND) }
         val viewCount = groupViewService.getViewCount(id)
         return GroupResponseDto(group, viewCount)
     }
-
 
     @Transactional
     fun deleteGroup(id : Long) {
