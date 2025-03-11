@@ -3,7 +3,9 @@ package com.example.backend.domain.admin.controller;
 import com.example.backend.domain.admin.dto.AdminLoginRequest
 import com.example.backend.domain.admin.service.AdminService
 import com.example.backend.domain.group.service.GroupService
+import com.example.backend.domain.member.dto.MemberInfoDto
 import com.example.backend.global.redis.service.RedisService
+import com.example.backend.global.response.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -61,5 +63,12 @@ class AdminController(
 		} else {
 			ResponseEntity.ok("관리자 인증되었습니다.")
 		}
+	}
+
+	// 닉네임으로 유저 검색
+	@GetMapping("/members/search")
+	fun getMembersByNickName(@RequestParam nickname: String , response: HttpServletResponse): ResponseEntity<ApiResponse<List<MemberInfoDto>>> {
+		val memberInfoDtoList = adminService.findMemberInfoDtosByNickname(nickname)
+		return ResponseEntity.ok().body(ApiResponse.of(memberInfoDtoList))
 	}
 }

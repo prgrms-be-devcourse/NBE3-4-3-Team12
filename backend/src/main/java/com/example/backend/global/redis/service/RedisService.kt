@@ -69,7 +69,7 @@ class RedisService(
     }
 
     fun isValidRefreshToken(key: String): Boolean {
-        return redisDao.exists(key) && redisDao.get(key) != "blacklisted"
+        return redisDao.get(key) != "blacklisted"
     }
 
     fun blackListedMember(kakaoId: String) {

@@ -4,6 +4,8 @@ import com.example.backend.domain.admin.entity.Admin
 import com.example.backend.domain.admin.exception.AdminErrorCode
 import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
+import com.example.backend.domain.member.dto.MemberInfoDto
+import com.example.backend.domain.member.service.MemberService
 import com.example.backend.global.auth.service.CookieService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AdminService(
     private val adminRepository: AdminRepository,
+    private val memberService: MemberService,
     private val passwordEncoder: PasswordEncoder,
     private val cookieService: CookieService,
     private val tokenProvider: TokenProvider,
@@ -65,5 +68,9 @@ class AdminService(
         } else  {
             throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
         }
+    }
+
+    fun findMemberInfoDtosByNickname(nickname: String): List<MemberInfoDto> {
+        return memberService.findMemberInfoDtosByNickname(nickname)
     }
 }
