@@ -44,5 +44,4 @@ class RedisDao(
     fun setExpiration(key: String, expirationTimeInSeconds: Long) {
         redisTemplate.expire(key, expirationTimeInSeconds, TimeUnit.SECONDS)
     }
-
 }
