@@ -1,12 +1,9 @@
-
-
-"use client";  // 이 줄을 추가하여 클라이언트 컴포넌트로 지정
+"use client";
 
 import MainMenu from "./components/MainMenu";
 import CardList from "./components/CardList";
-
-import { getGroups, getTop3Posts } from "@/app/api"; // getTop3Posts 추가
-import { useEffect, useState } from "react"; // 인기 게시물 데이터를 위해 useState와 useEffect 사용
+import { getGroups, getTop3Posts } from "@/app/api";
+import { useEffect, useState } from "react";
 
 export default function Home() {
     const [groups, setGroups] = useState<any[]>([]); // 그룹 데이터 상태
