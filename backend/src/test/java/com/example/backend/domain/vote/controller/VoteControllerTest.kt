@@ -98,30 +98,6 @@ class VoteControllerTest {
     }
 
     @Test
-    fun `투표 생성 테스트2 (Gemini 테스트용)`() {
-        // given
-        val groupId = 2L
-        val accessTokenCookie = Cookie("accessToken", accessToken)
-
-        // when
-        val resultActions = mockMvc.perform(
-            post("/votes/groups/$groupId/votes")
-                .cookie(accessTokenCookie)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(voteRequestDto))
-        )
-
-        // then
-        resultActions
-            .andDo(print())
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.location").value(voteRequestDto.location))
-            .andExpect(jsonPath("$.address").value(voteRequestDto.address))
-            .andExpect(jsonPath("$.latitude").value(voteRequestDto.latitude))
-            .andExpect(jsonPath("$.createdAt").exists())
-    }
-
-    @Test
     fun `투표 생성 실패 테스트(인증없음)`() {
         // given
         val groupId = 1L
