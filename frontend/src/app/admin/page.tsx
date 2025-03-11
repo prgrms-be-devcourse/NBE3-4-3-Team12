@@ -65,6 +65,12 @@ const AdminMainPage = () => {
                 >
                     모임 관리
                 </button>
+                <button
+                    onClick={() => router.push("/admin/blacklist")}
+                    className="w-full bg-yellow-500 text-white py-3 rounded-lg text-lg hover:bg-green-600"
+                >
+                    블랙리스트 처리
+                </button>
             </div>
         </div>
     );
