@@ -2,8 +2,6 @@ package com.example.backend.global.redis.service
 
 import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.global.redis.dao.RedisDao
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit

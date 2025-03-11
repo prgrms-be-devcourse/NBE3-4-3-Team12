@@ -3,8 +3,6 @@ package com.example.backend.domain.group.dto;
 import com.example.backend.domain.category.dto.CategoryResponseDto
 import com.example.backend.domain.group.entity.Group
 import com.example.backend.domain.group.entity.GroupStatus
-import com.fasterxml.jackson.annotation.JsonFormat
-import java.time.LocalDateTime
 
 data class GroupResponseDto(
     val id : Long,
