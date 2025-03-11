@@ -18,15 +18,11 @@ class Member(
     var id: Long? = null
         protected set
 
-    @Column(name = "kakao_refresh_token")
-    var kakaoRefreshToken: String = ""
-
     constructor(kakaoUserInfoDto: KakaoUserInfoResponseDto) : this(
         kakaoId = kakaoUserInfoDto.id,
         nickname = kakaoUserInfoDto.properties.nickname,
         email = kakaoUserInfoDto.kakaoAccount.email
     )
-
 
     fun modify(memberModifyDto: MemberModifyRequestDto) {
         this.nickname = memberModifyDto.nickname
