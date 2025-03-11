@@ -1,6 +1,6 @@
 import MainMenu from "./components/MainMenu";
 import CardList from "./components/CardList";
-import { getGroups } from "./api/group";
+import { getGroups } from "@/app/api";
 
 export default async function Home() {
   const groups = await getGroups(); // 서버에서 데이터 가져오기

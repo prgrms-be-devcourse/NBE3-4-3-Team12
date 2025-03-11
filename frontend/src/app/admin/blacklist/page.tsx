@@ -4,9 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMembersByNickName, blacklistMember } from "@/app/api";
 
+interface User {
+    id: string;
+    nickname: string;
+    email: string;
+}
+
 const AdminUserSearchPage = () => {
     const [nickname, setNickname] = useState("");
-    const [userList, setUserList] = useState([]); // 유저 리스트 타입 수정
+    const [userList, setUserList] = useState<User[]>([]); // 유저 리스트 타입 수정
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const router = useRouter();
@@ -15,8 +21,12 @@ const AdminUserSearchPage = () => {
     const handleSearch = async () => {
         setLoading(true);
         try {
-            const users = await getMembersByNickName(nickname);
-            setUserList(users.data); // 반환된 data 부분에 맞게 처리
+            const users = (await getMembersByNickName(nickname)).map((user) => ({
+                id: user.id,
+                nickname: user.nickname,
+                email: user.email || "", // 기본값 처리
+            }));
+            setUserList(users); // 반환된 data 부분에 맞게 처리
             setError(null);
         } catch (error) {
             setError("유저 검색에 실패했습니다. 다시 시도해 주세요.");
