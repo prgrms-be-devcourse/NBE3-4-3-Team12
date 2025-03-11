@@ -97,4 +97,12 @@ class SwaggerConfig {
             .pathsToMatch("/auth/**")
             .build()
     }
+
+    @Bean
+    fun chatApi(): GroupedOpenApi {
+        return GroupedOpenApi.builder()
+            .group("chatApi")
+            .pathsToMatch("/chat/**")
+            .build()
+    }
 }

@@ -26,6 +26,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -35,6 +36,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-web-services")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-messaging")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
