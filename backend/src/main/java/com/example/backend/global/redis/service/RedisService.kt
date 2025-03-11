@@ -1,6 +1,10 @@
 package com.example.backend.global.redis.service
 
+import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.global.redis.dao.RedisDao
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Service
 
 /**
@@ -37,15 +41,6 @@ class RedisService(
         redisDao.setExpiration(key, expirationTimeInSeconds)
     }
 
-    // 조회수 증가
-    fun incrementViewCount(groupId: Long): Long {
-        val groupKey = "group:views:$groupId"
-        val currentViewCount = getViewCount(groupId)
-        val newViewCount = currentViewCount + 1
-        redisDao.save(groupKey, newViewCount.toString())
-        return newViewCount
-    }
-
     // 조회수 가져오기
     fun getViewCount(groupId: Long): Long {
         val groupKey = "group:views:$groupId"
@@ -62,6 +57,27 @@ class RedisService(
     fun markUserAsViewed(groupId: Long, userId: Long) {
         val userViewKey = "group:user:viewed:$groupId:$userId"
         redisDao.save(userViewKey, "viewed", 24 * 60 * 60L) // 24시간 동안만 조회한 것으로 처리
+    }
+
+    fun getAllKeys(): List<String> {
+        return redisDao.getAllKeys()
+    }
+    // 그룹 정보 저장 (예시: GroupResponseDto를 JSON 문자열로 변환하여 저장)
+    fun saveGroupInfo(groupId: Long, groupResponseDto: GroupResponseDto) {
+        val objectMapper = jacksonObjectMapper()
+        val groupJson = objectMapper.writeValueAsString(groupResponseDto)
+        redisDao.save("group:$groupId", groupJson)
+    }
+
+    // 그룹 정보 가져오기
+    fun getGroupInfo(groupId: Long): GroupResponseDto? {
+        val groupJson = redisDao.get("group:$groupId")
+        return if (groupJson != null) {
+            val objectMapper = jacksonObjectMapper()
+            objectMapper.readValue(groupJson, GroupResponseDto::class.java)
+        } else {
+            null
+        }
     }
 
     fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {

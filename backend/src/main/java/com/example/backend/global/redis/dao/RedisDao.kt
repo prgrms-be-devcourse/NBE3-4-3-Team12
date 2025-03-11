@@ -1,7 +1,10 @@
 package com.example.backend.global.redis.dao
 
+import com.nimbusds.jose.shaded.gson.Gson
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.ScanOptions
 import org.springframework.stereotype.Repository
+import java.awt.Cursor
 import java.util.concurrent.TimeUnit
 
 
@@ -14,6 +17,7 @@ import java.util.concurrent.TimeUnit
 class RedisDao(
     private val redisTemplate: RedisTemplate<String, String>
 ) {
+    private val gson = Gson()
 
     // 데이터 저장 (만료 시간 설정 없이)
     fun save(key: String, value: String) {
@@ -53,5 +57,11 @@ class RedisDao(
     // 모든 데이터 반환
     fun findAllKeys(): Set<String> {
         return redisTemplate.keys("*")
+    }
+
+    // 모든키 조회
+    fun getAllKeys(): List<String> {
+        val keys = redisTemplate.keys("group:views:*")
+        return keys?.toList() ?: emptyList()
     }
 }
