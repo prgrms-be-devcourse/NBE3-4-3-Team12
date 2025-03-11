@@ -2,11 +2,12 @@ package com.example.backend.domain.category.dto
 
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
+import com.fasterxml.jackson.annotation.JsonProperty
 
 data class CategoryResponseDto(
-    val id: Long?,
-    val type: CategoryType,
-    val name: String
+    @JsonProperty("id") val id: Long?,
+    @JsonProperty("type") val type: CategoryType,
+    @JsonProperty("name") val name: String
 ) {
     constructor(category: Category) : this(
         id = category.id,

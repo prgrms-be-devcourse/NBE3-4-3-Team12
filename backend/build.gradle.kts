@@ -36,10 +36,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web-services")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 
-    compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")
-    testCompileOnly("org.projectlombok:lombok")
-    testAnnotationProcessor("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     runtimeOnly("com.h2database:h2")
@@ -52,6 +48,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("org.springframework.boot:spring-boot-starter-security")

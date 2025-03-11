@@ -60,8 +60,10 @@ class KakaoAuthController(
 
         // 카카오에서 인가 토큰이 아닌 에러를 반환할 시 홈페이지로 리다이렉트 및 에러 메세지 응답
         if (error != null) {
-            val errorResponse = ErrorResponse.of(
-                errorDescription ?: "UNKNOWN_ERROR", "400-$error", request.requestURI
+            val errorResponse = ErrorResponse(
+                message = errorDescription ?: "UNKNOWN_ERROR",
+                code = "400-$error",
+                requestUri = request.requestURI
             )
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).headers(headers)
@@ -97,7 +99,7 @@ class KakaoAuthController(
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .headers(headers)
-            .body(ApiResponse.of<Any>("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname))
+            .body(ApiResponse<Any>("성공적으로 로그인 되었습니다. nickname : " + loginDto.nickname))
     }
 
     /**
@@ -128,6 +130,6 @@ class KakaoAuthController(
         headers.location = URI.create(clientBaseUrl)
 
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers).body(ApiResponse.of("성공적으로 로그아웃 되었습니다."))
+            .headers(headers).body(ApiResponse("성공적으로 로그아웃 되었습니다."))
     }
 }

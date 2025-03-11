@@ -78,6 +78,7 @@ class AdminControllerTest(
     @DisplayName("관리자 로그인 테스트")
     fun loginSuccessTest() {
         val loginResponse = loginAndGetResponse()
+        val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
 
         loginResponse
             .andExpect(status().isOk)
@@ -88,6 +89,8 @@ class AdminControllerTest(
             .andExpect(cookie().secure("accessToken", true))
             .andExpect(cookie().secure("refreshToken", true))
             .andReturn()
+
+        redisService.delete(refreshToken!!)
     }
 
     @Test
@@ -111,6 +114,8 @@ class AdminControllerTest(
             .andExpect(status().isOk)
             .andExpect(cookie().value("accessToken", ""))
             .andExpect(cookie().value("refreshToken", ""))
+
+        redisService.delete(refreshToken!!)
     }
 
     @Test
@@ -136,6 +141,8 @@ class AdminControllerTest(
 
         val group = groupRepository.findById(groupId).orElseThrow()
         assert(group.status == GroupStatus.DELETED)
+
+        redisService.delete(refreshToken!!)
     }
 
     @Test
@@ -158,6 +165,8 @@ class AdminControllerTest(
 
         val response = redisService.get("refreshToken")
         assertThat(response).isEqualTo("blacklisted")
+
+        redisService.delete("refreshToken")
     }
 
     @Test
@@ -169,14 +178,14 @@ class AdminControllerTest(
         val accessToken = loginResponse.andReturn().response.getCookie("accessToken")?.value
         val refreshToken = loginResponse.andReturn().response.getCookie("refreshToken")?.value
 
-        for (i in 1 .. 5) {
+        for (i in 1..5) {
             memberRepository.save(Member((100 + i).toLong(), "testUser$i", "test$i@test.com"))
             memberRepository.save(Member((200 + i).toLong(), "testUser$i", "test$i@test.com"))
         }
 
         val searchResponse = mockMvc.perform(
             get("/admin/members/search")
-                .param("nickname","testUser1")
+                .param("nickname", "testUser1")
                 .cookie(Cookie("accessToken", accessToken))
                 .cookie(Cookie("refreshToken", refreshToken))
         )
@@ -191,5 +200,7 @@ class AdminControllerTest(
             .andExpect(jsonPath("$.data[1].id").value(2))  // 두 번째 유저의 id 검증
             .andExpect(jsonPath("$.data[1].nickname").value("testUser1"))  // 두 번째 유저의 nickname 검증
             .andExpect(jsonPath("$.data[1].email").value("test1@test.com"))  // 두 번째 유저의 email 검증
+
+        redisService.delete(refreshToken!!)
     }
 }

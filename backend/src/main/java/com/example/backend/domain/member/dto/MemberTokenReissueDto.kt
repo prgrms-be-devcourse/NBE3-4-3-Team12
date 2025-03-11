@@ -11,14 +11,11 @@ data class MemberTokenReissueDto(
     val email: String,
     val refreshToken: String
 ) {
-    companion object {
-        fun of(memberInfoDto: MemberInfoDto, reIssuedRefreshToken: String): MemberTokenReissueDto {
-            return MemberTokenReissueDto(
-                memberInfoDto.id,
-                memberInfoDto.nickname,
-                memberInfoDto.email,
-                reIssuedRefreshToken
-            )
-        }
-    }
+
+    constructor(memberInfoDto: MemberInfoDto, reIssuedRefreshToken: String) : this(
+        memberInfoDto.id,
+        memberInfoDto.nickname,
+        memberInfoDto.email,
+        reIssuedRefreshToken
+    )
 }

@@ -6,6 +6,8 @@ import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.exception.CategoryErrorCode
 import com.example.backend.domain.category.exception.CategoryException
 import com.example.backend.domain.category.repository.CategoryRepository
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,6 +17,7 @@ class CategoryService(
 ) {
 
     @Transactional
+    @CacheEvict(value = ["categories"], allEntries = true)
     fun create(requestDto: CategoryRequestDto): CategoryResponseDto {
         val category = Category(
             name = requestDto.name,
@@ -25,6 +28,7 @@ class CategoryService(
     }
 
     @Transactional
+    @CacheEvict(value = ["categories"], allEntries = true)
     fun modify(id: Long, categoryRequestDto: CategoryRequestDto): CategoryResponseDto {
         val category = categoryRepository.findById(id)
             .orElseThrow { CategoryException(CategoryErrorCode.NOT_FOUND) }
@@ -38,6 +42,7 @@ class CategoryService(
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = ["categories"])
     fun getAllCategories(): List<CategoryResponseDto> {
         val categories = categoryRepository.findAll()
         if (categories.isEmpty()) {
@@ -54,6 +59,7 @@ class CategoryService(
     }
 
     @Transactional
+    @CacheEvict(value = ["categories"], allEntries = true)
     fun delete(id: Long) {
         val category = categoryRepository.findById(id)
             .orElseThrow { CategoryException(CategoryErrorCode.NOT_FOUND) }

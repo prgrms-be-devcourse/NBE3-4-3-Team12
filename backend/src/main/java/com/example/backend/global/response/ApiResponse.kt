@@ -9,17 +9,6 @@ data class ApiResponse<T>(
     val message: String,
     val data: T? = null
 ) {
-    companion object {
-        fun <T> of(message: String): ApiResponse<T> {
-            return ApiResponse(message = message)
-        }
 
-        fun <T> of(data: T): ApiResponse<T> {
-            return ApiResponse(message = "Success", data = data)
-        }
-
-        fun <T> of(message: String, data: T): ApiResponse<T> {
-            return ApiResponse(message = message, data = data)
-        }
-    }
+    constructor(data: T) : this(message = "Success", data = data)
 }

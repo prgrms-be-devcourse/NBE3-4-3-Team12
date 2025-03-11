@@ -5,7 +5,8 @@ import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
-import com.example.backend.domain.member.repository.MemberRepository
+import com.example.backend.domain.category.service.CategoryService
+import com.example.backend.global.redis.service.RedisService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
@@ -40,10 +41,13 @@ class CategoryControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
-    private lateinit var memberRepository: MemberRepository
+    private lateinit var categoryRepository: CategoryRepository
 
     @Autowired
-    private lateinit var categoryRepository: CategoryRepository
+    private lateinit var categoryService: CategoryService
+
+    @Autowired
+    private lateinit var redisService: RedisService
 
     @PersistenceContext
     private lateinit var em: EntityManager
@@ -110,6 +114,8 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.type").value("HOBBY"))
             .andExpect(jsonPath("$.name").value("새로운 취미 카테고리"))
+
+        redisService.delete(refreshToken)
     }
 
     @Test
@@ -167,6 +173,8 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.id").value(1L))
             .andExpect(jsonPath("$.type").value("EXERCISE"))
             .andExpect(jsonPath("$.name").value("수정된 카테고리"))
+
+        redisService.delete(refreshToken)
     }
 
     @Test
@@ -184,6 +192,8 @@ class CategoryControllerTest {
         resultActions.andExpect(handler().handlerType(CategoryController::class.java))
             .andExpect(handler().methodName("deleteCategory"))
             .andExpect(status().isOk)
+
+        redisService.delete(refreshToken)
     }
 
     @Test
@@ -200,6 +210,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 목록이 없을 때 조회")
     fun getCategoryListEmptyTest() {
+        categoryService.delete(1L)  // redis캐시 무효화를 위해 서비스 삭제 메서드 실행
         categoryRepository.deleteAll()
 
         val resultActions: ResultActions = mockMvc.perform(

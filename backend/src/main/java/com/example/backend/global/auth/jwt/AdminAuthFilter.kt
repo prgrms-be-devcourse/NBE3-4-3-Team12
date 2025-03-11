@@ -45,16 +45,17 @@ class AdminAuthFilter(
 		try {
 			val tokenStatus = jwtUtil.validateToken(accessToken)
 
-			when (tokenStatus) {
-				TokenStatus.VALID -> {
-					val authentication = jwtUtil.getAuthentication(accessToken)
-					SecurityContextHolder.getContext().authentication = authentication
-					chain.doFilter(request, response)
-				}
-				TokenStatus.EXPIRED -> {
-					jwtUtil.isRefreshTokenValid(refreshToken)
-					val adminName = redisService.get(refreshToken)
-						?: throw AuthException(AuthErrorCode.INVALID_TOKEN)
+            when (tokenStatus) {
+                TokenStatus.VALID -> {
+                    val authentication = jwtUtil.getAuthentication(accessToken)
+                    SecurityContextHolder.getContext().authentication = authentication
+                    chain.doFilter(request, response)
+                }
+
+                TokenStatus.EXPIRED -> {
+                    jwtUtil.isRefreshTokenValid(refreshToken)
+                    val adminName = redisService.get(refreshToken)
+                        ?: throw AuthException(AuthErrorCode.INVALID_TOKEN)
 
 					val admin = adminRepository.findByAdminName(adminName)
 						?: throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
@@ -62,17 +63,18 @@ class AdminAuthFilter(
 					val newAccessToken = tokenProvider.generateToken(admin)
 					cookieService.addAccessTokenToCookie(newAccessToken, response)
 
-					val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
-					SecurityContextHolder.getContext().authentication = newAuthentication
-					chain.doFilter(request, response)
-				}
-				TokenStatus.MALFORMED -> handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
-				TokenStatus.INVALID -> handleException(AuthErrorCode.INVALID_TOKEN, request, response)
-			}
-		} catch (e: Exception) {
-			handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
-		}
-	}
+                    val newAuthentication = jwtUtil.getAuthentication(newAccessToken)
+                    SecurityContextHolder.getContext().authentication = newAuthentication
+                    chain.doFilter(request, response)
+                }
+
+                TokenStatus.MALFORMED -> handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
+                TokenStatus.INVALID -> handleException(AuthErrorCode.INVALID_TOKEN, request, response)
+            }
+        } catch (e: Exception) {
+            handleException(AuthErrorCode.AUTHORIZATION_FAILED, request, response)
+        }
+    }
 
 	override fun shouldNotFilter(request: HttpServletRequest): Boolean {
 		val path = request.requestURI
@@ -91,14 +93,14 @@ class AdminAuthFilter(
 		cookieService.clearTokenFromCookie(response)
 		SecurityContextHolder.clearContext()
 
-		response.status = ex.httpStatus.value()
-		response.contentType = "application/json;charset=UTF-8"
+        response.status = ex.httpStatus.value()
+        response.contentType = "application/json;charset=UTF-8"
 
-		val errorResponse = ErrorResponse.of(
-			ex.message,
-			ex.code,
-			request.requestURI
-		)
-		objectMapper.writeValue(response.writer, errorResponse)
-	}
+        val errorResponse = ErrorResponse(
+            ex.message,
+            ex.code,
+            request.requestURI
+        )
+        objectMapper.writeValue(response.writer, errorResponse)
+    }
 }

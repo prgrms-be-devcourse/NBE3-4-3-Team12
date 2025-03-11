@@ -1,13 +1,13 @@
 package com.example.backend.domain.group.service
 
 import com.example.backend.global.redis.service.RedisService
-import lombok.extern.slf4j.Slf4j
-import org.hibernate.query.sqm.tree.SqmNode.log
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
-@Slf4j
 @Service
 class GroupViewService(private val redisService: RedisService) {
+
+    private val log = LoggerFactory.getLogger(GroupViewService::class.java)
 
     private val viewKeyPrefix = "group:views:"
     private val userViewedPrefix = "group:user:viewed:"

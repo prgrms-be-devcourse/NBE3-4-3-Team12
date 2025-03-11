@@ -9,7 +9,7 @@ import com.example.backend.global.auth.service.CustomUserDetailService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
 import com.example.backend.global.redis.service.RedisService
-import com.example.backend.global.response.ErrorResponse.Companion.of
+import com.example.backend.global.response.ErrorResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
@@ -151,7 +151,7 @@ class MemberAuthFilter(
         response.status = ex.status.value()
         response.contentType = "application/json;charset=UTF-8"
 
-        val errorResponse = of(ex.message, ex.code, request.requestURI)
+        val errorResponse = ErrorResponse(ex.message, ex.code, request.requestURI)
         objectMapper.writeValue(response.writer, errorResponse)
     }
 
