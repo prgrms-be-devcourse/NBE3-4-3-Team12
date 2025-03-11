@@ -19,4 +19,10 @@ interface MemberRepository : JpaRepository<Member, Long> {
                 "FROM Member m WHERE m.id = :id"
     )
     fun findMemberInfoDtoById(id: Long): Optional<MemberInfoDto>
+
+    @Query(
+        "SELECT new com.example.backend.domain.member.dto.MemberInfoDto(m.id, m.nickname, m.email) " +
+                "FROM Member m WHERE m.nickname = :nickname"
+    )
+    fun findMemberInfoDtosByNickname(nickname: String): List<MemberInfoDto>
 }

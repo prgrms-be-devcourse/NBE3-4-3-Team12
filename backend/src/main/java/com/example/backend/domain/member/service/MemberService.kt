@@ -70,4 +70,11 @@ class MemberService(
         cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
         return MemberInfoDto.of(member)
     }
+
+    fun findMemberInfoDtosByNickname(nickname: String): List<MemberInfoDto> {
+        val memberList = memberRepository.findMemberInfoDtosByNickname(nickname)
+
+        return memberList.takeIf { it.isNotEmpty() }
+            ?: throw MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+    }
 }

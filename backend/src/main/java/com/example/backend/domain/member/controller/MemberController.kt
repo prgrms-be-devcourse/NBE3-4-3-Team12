@@ -40,4 +40,10 @@ class MemberController(
         val memberInfoDto = memberService.modify(customUserDetails.userId, memberModifyDto, response)
         return ResponseEntity.ok().body(ApiResponse.of(memberInfoDto))
     }
+
+    @GetMapping("/search")
+    fun getMembersByNickName(@RequestParam nickname: String , response: HttpServletResponse): ResponseEntity<ApiResponse<List<MemberInfoDto>>> {
+        val memberInfoDtoList = memberService.findMemberInfoDtosByNickname(nickname)
+        return ResponseEntity.ok().body(ApiResponse.of(memberInfoDtoList))
+    }
 }
