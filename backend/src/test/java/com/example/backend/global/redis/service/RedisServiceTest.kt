@@ -21,7 +21,7 @@ class RedisServiceTest {
     @BeforeEach
     fun init() {
         // 실제 Redis 서버에 토큰 저장
-        redisService.save(refreshToken, "admin", 3600000L)
+        redisService.save(refreshToken, "admin", 5L)
     }
 
     @Test
@@ -34,7 +34,7 @@ class RedisServiceTest {
     @Test
     @DisplayName("리프레시 토큰 블랙리스트 테스트")
     fun refreshTokenShouldBeDeleted() {
-        redisService.addBlackList(refreshToken, 3600000L)
+        redisService.addBlackList(refreshToken, 5L)
         val storedValue = redisService.get(refreshToken)
         assertThat(storedValue).isEqualTo("blacklisted")
     }
