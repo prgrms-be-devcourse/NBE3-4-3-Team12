@@ -7,8 +7,6 @@ on:
       - 'backend/**'
   pull_request:
     types: [opened, synchronize]
-    paths:
-      - 'backend/**'
 
 jobs:
   code-review:
@@ -22,118 +20,85 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
+      - name: Set up Node
+        uses: actions/setup-node@v3
 
-      - name: Get changed files for PR
+      - name: Install GoogleGenerativeAI
+        run: |
+          npm install @google/generative-ai
+
+      # PR 이벤트에서의 변경사항 처리
+      - name: Get git diff for PR
         if: github.event_name == 'pull_request'
-        id: changed-files-pr
         run: |
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
-          echo "Changed files:"
-          cat changed_files.txt
-          grep "\.kt$" changed_files.txt > kotlin_files.txt || true
-          if [ -s kotlin_files.txt ]; then
-            echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "KOTLIN_FILES_EXISTS=false" >> $GITHUB_ENV
-          fi
+          git fetch origin "${{ github.event.pull_request.base.ref }}"
+          git fetch origin "${{ github.event.pull_request.head.ref }}"
+          git diff --unified=0 "origin/${{ github.event.pull_request.base.ref }}" > "diff.txt"
+          echo "EVENT_TYPE=pull_request" >> $GITHUB_ENV
 
-      - name: Get changed files for Push
+      # Push 이벤트에서의 변경사항 처리
+      - name: Get git diff for Push
         if: github.event_name == 'push'
-        id: changed-files-push
         run: |
-          git diff --name-only HEAD^ HEAD > changed_files.txt
-          echo "Changed files:"
-          cat changed_files.txt
-          grep "\.kt$" changed_files.txt > kotlin_files.txt || true
-          if [ -s kotlin_files.txt ]; then
-            echo "KOTLIN_FILES_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "KOTLIN_FILES_EXISTS=false" >> $GITHUB_ENV
-          fi
+          git diff --unified=0 HEAD^ HEAD > "diff.txt"
+          echo "EVENT_TYPE=push" >> $GITHUB_ENV
 
-      - name: Review code with Gemini AI
-        if: env.KOTLIN_FILES_EXISTS == 'true'
-        id: gemini-review
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # Gemini를 사용한 코드 분석
+      - name: Run Gemini-1.5-flash
+        id: gemini_review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const diff_output = fs.readFileSync("diff.txt",'utf8');
+            
+            const { GoogleGenerativeAI } = require("@google/generative-ai");
+            const genAI = new GoogleGenerativeAI("${{ secrets.GEMINI_API_KEY }}");
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+            
+            // PR과 Push에 따라 다른 프롬프트 사용
+            let prompt;
+            if (process.env.EVENT_TYPE === 'pull_request') {
+              prompt = `You are a senior software engineer and need to perform a code review based on the results of a given git diff. Review the changed code from different perspectives and let us know if there are any changes that need to be made. If you see any code that needs to be fixed in the result of the git diff, you need to calculate the exact line number by referring to the "@@ -0,0 +0,0 @@" part. The output format is \[{"path":"{ filepath }", "line": { line }, "text": { review comment }, "side": "RIGHT"}\] format must be respected.\n<git diff>${diff_output}</git diff>`;
+            } else {
+              prompt = `You are a senior software engineer and need to perform a code review based on the results of a given git diff. Provide a detailed review of the code changes, focusing on code quality, readability, performance, and security. Format your response in Markdown with clear headings for each file reviewed.\n<git diff>${diff_output}</git diff>`;
+            }
+            
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            
+            fs.writeFileSync('review_result.txt', text);
+            console.log('Review results saved!');
+
+      # PR 이벤트: 라인별 리뷰 코멘트 추가
+      - name: Format and add PR review comments
+        if: env.EVENT_TYPE == 'pull_request'
+        id: store
         run: |
-          GEMINI_ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}"
-          
-          REVIEW_COMMENT="## Gemini AI 코드 리뷰 결과\n\n"
-          
-          while IFS= read -r file; do
-            if [[ -f "$file" ]]; then
-              echo "리뷰 중: $file"
-          
-              FILE_CONTENT=$(cat "$file")
-          
-              REQUEST_BODY='{
-                "contents": [
-                  {
-                    "parts": [
-                      {
-                        "text": "다음 Kotlin 코드를 검토하고 코드 품질, 가독성, 성능 및 보안 관점에서 개선점과 피드백을 제공해주세요. 특별히 강조할 중요한 이슈가 있다면 먼저 언급해주세요. 응답은 마크다운 형식의 간결한 한국어로 작성해주세요.\n\n파일 경로: '"$file"'\n\n코드:\n```kotlin\n'"$FILE_CONTENT"'\n```"
-                      }
-                    ]
-                  }
-                ],
-                "generationConfig": {
-                  "temperature": 0.2,
-                  "topK": 40,
-                  "topP": 0.95,
-                  "maxOutputTokens": 8192
-                }
-              }'
-          
-              RESPONSE=$(curl -s -X POST "$GEMINI_ENDPOINT" \
-                -H "Content-Type: application/json" \
-                -d "$REQUEST_BODY")
-          
-              REVIEW_TEXT=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text')
-          
-              REVIEW_COMMENT+="### ${file}\n\n${REVIEW_TEXT}\n\n---\n\n"
-            fi
-          done < kotlin_files.txt
-          
-          echo "$REVIEW_COMMENT" > gemini_review.md
-          
-          if [ $(wc -c < gemini_review.md) -gt 65000 ]; then
-            echo "리뷰 내용이 너무 깁니다. 요약 버전을 생성합니다."
-            head -c 60000 gemini_review.md > gemini_review_truncated.md
-            echo "\n\n... (리뷰가 너무 길어 잘렸습니다. 전체 리뷰는 워크플로우 아티팩트에서 확인하세요) ..." >> gemini_review_truncated.md
-            mv gemini_review_truncated.md gemini_review.md
-          fi
-          
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "===== Gemini Code Review Results ====="
-            cat gemini_review.md
-            echo "======================================"
-          fi
+          COMMENT=$(sed '/^```/d' review_result.txt | jq -c .)
+          echo "comment=$COMMENT" >> $GITHUB_OUTPUT
 
-      - name: Upload review artifact
-        if: env.KOTLIN_FILES_EXISTS == 'true'
+      - name: Add Pull Request Review Comment
+        if: env.EVENT_TYPE == 'pull_request'
+        uses: nbaztec/add-pr-review-comment@v1.0.7
+        with:
+          comments: ${{ steps.store.outputs.comment }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token-user-login: 'github-actions[bot]'
+          allow-repeats: false
+
+      # Push 이벤트: 액션 로그에 리뷰 결과 출력 및 아티팩트 업로드
+      - name: Display review results in workflow log
+        if: env.EVENT_TYPE == 'push'
+        run: |
+          echo "===== Gemini Code Review Results ====="
+          cat review_result.txt
+          echo "======================================"
+
+      - name: Upload review results as artifact
+        if: env.EVENT_TYPE == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: gemini-code-review
-          path: gemini_review.md
-
-      - name: Add PR comment
-        if: env.KOTLIN_FILES_EXISTS == 'true' && github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const review = fs.readFileSync('gemini_review.md', 'utf8');
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: review
-            });
+          path: review_result.txt
