@@ -21,12 +21,10 @@ class GroupTopViewService(
             val viewCount = groupId?.let { redisService.getViewCount(it) }
             groupId?.let { it to viewCount }
         }
-
         // 조회수를 기준으로 내림차순 정렬 후 상위 3개 선택
         val topGroupIds = views.sortedByDescending { it.second }
             .take(3)
             .map { it.first }
-
         return topGroupIds.map { groupId ->
             var groupResponseDto = redisService.getGroupInfo(groupId)
             // Redis에 그룹 정보가 없다면 DB에서 조회 후 Redis에 저장
