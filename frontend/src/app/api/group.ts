@@ -24,7 +24,20 @@ export const getGroups = async () => {
         return [];
     }
 };
-
+// 인기 그룹 조회 (상위 3개 조회수 많은 그룹)
+export const getTop3Posts = async () => {
+    try {
+        const response = await api.get("/groups/topViews", {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("인기 게시물 조회 중 오류 발생:", error);
+        throw error;
+    }
+};
 // 특정 그룹 조회
 export const getGroup = async (id: number) => {
     try{

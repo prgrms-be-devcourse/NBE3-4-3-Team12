@@ -2,6 +2,7 @@ package com.example.backend.domain.group.controller;
 
 import com.example.backend.domain.group.dto.*
 import com.example.backend.domain.group.service.GroupService
+import com.example.backend.domain.group.service.GroupTopViewService
 import com.example.backend.domain.group.service.GroupViewService
 import com.example.backend.global.auth.model.CustomUserDetails
 import jakarta.validation.Valid;
@@ -12,12 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/groups")
 class GroupController(
     private val groupService: GroupService,
-    private val groupViewService: GroupViewService
+    private val groupViewService: GroupViewService,
+    private val groupTopViewService: GroupTopViewService
 ) {
     @PostMapping
     fun createGroup (
@@ -44,6 +45,12 @@ class GroupController(
         groupViewService.incrementViewCount(id,memberId);
         val response : GroupResponseDto = groupService.findGroup(id)
         return  ResponseEntity(response, HttpStatusCode.valueOf(200))
+    }
+
+    @GetMapping("/topViews")
+    fun getTopPosts(): ResponseEntity<List<GroupResponseDto>> {
+        val response = groupTopViewService.getTop3ViewedPosts()
+        return ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
 
     @DeleteMapping("/{groupId}")
