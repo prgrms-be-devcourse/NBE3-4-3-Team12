@@ -14,7 +14,7 @@ class GroupTopViewService(
     private val topGroupKey = "group:top3"
 
     // 상위 3개의 인기 게시글을 조회
-    fun getTop3ViewedPosts(): List<GroupResponseDto> {
+    fun getTop3ViewedGroups(): List<GroupResponseDto> {
         val keys = redisService.getAllKeys()
         val views = keys.mapNotNull { key ->
             val groupId = key.removePrefix(viewKeyPrefix).toLongOrNull()
@@ -37,10 +37,11 @@ class GroupTopViewService(
         }
     }
 
+
     @Scheduled(cron = "0 0 0 * * SUN")
     fun showTop3Posts() {
         redisService.delete(topGroupKey)
-        val topPosts = getTop3ViewedPosts()
+        val topPosts = getTop3ViewedGroups()
         topPosts.forEachIndexed { index, group ->
             redisService.saveGroupInfo(group.id, group)
         }

@@ -49,7 +49,7 @@ class GroupController(
 
     @GetMapping("/topViews")
     fun getTopPosts(): ResponseEntity<List<GroupResponseDto>> {
-        val response = groupTopViewService.getTop3ViewedPosts()
+        val response = groupTopViewService.getTop3ViewedGroups()
         return ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
 

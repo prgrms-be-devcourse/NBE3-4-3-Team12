@@ -49,13 +49,16 @@ class RedisService(
     // 사용자 조회 여부 체크
     fun isUserViewed(groupId: Long, userId: Long): Boolean {
         val userViewKey = "group:user:viewed:$groupId:$userId"
+        val viewed = redisDao.exists(userViewKey)
+        println("Checking if user $userId viewed group $groupId: $viewed")
         return redisDao.exists(userViewKey)
     }
 
     // 조회한 사용자 마킹
     fun markUserAsViewed(groupId: Long, userId: Long) {
         val userViewKey = "group:user:viewed:$groupId:$userId"
-        redisDao.save(userViewKey, "viewed", TimeUnit.DAYS.toSeconds(1)) // 24시간 동안만 조회한 것으로 처리
+        redisDao.save(userViewKey, "viewed", TimeUnit.SECONDS.toSeconds(30));
+//        redisDao.save(userViewKey, "viewed", TimeUnit.DAYS.toSeconds(1)) // 24시간 동안만 조회한 것으로 처리
     }
 
     fun getAllKeys(): List<String> {
@@ -77,6 +80,11 @@ class RedisService(
         } else {
             null
         }
+    }
+    fun incrementViewCount(groupId: Long) {
+        val groupKey = "group:views:$groupId"
+        val currentCount = get(groupKey)?.toLong() ?: 0
+        save(groupKey, (currentCount + 1).toString())
     }
 
     fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {
