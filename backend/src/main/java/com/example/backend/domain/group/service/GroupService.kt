@@ -24,6 +24,7 @@ import com.example.backend.domain.voter.repository.VoterRepository
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 @Service
 class GroupService(
     val groupRepository: GroupRepository,
@@ -89,6 +90,7 @@ class GroupService(
 		voteRepository.deleteAllByGroupId(id);
         groupRepository.save(group);
     }
+
 
     @Transactional
     fun modifyGroup(id : Long, groupModifyRequestDto : GroupModifyRequestDto) : GroupResponseDto {
