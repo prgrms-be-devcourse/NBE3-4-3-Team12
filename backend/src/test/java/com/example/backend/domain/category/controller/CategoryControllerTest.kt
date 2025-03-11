@@ -6,6 +6,7 @@ import com.example.backend.domain.category.entity.Category
 import com.example.backend.domain.category.entity.CategoryType
 import com.example.backend.domain.category.repository.CategoryRepository
 import com.example.backend.domain.category.service.CategoryService
+import com.example.backend.global.redis.service.RedisService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.servlet.http.Cookie
@@ -44,6 +45,9 @@ class CategoryControllerTest {
 
     @Autowired
     private lateinit var categoryService: CategoryService
+
+    @Autowired
+    private lateinit var redisService: RedisService
 
     @PersistenceContext
     private lateinit var em: EntityManager
@@ -110,6 +114,8 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.type").value("HOBBY"))
             .andExpect(jsonPath("$.name").value("새로운 취미 카테고리"))
+
+        redisService.delete(refreshToken)
     }
 
     @Test
@@ -167,6 +173,8 @@ class CategoryControllerTest {
             .andExpect(jsonPath("$.id").value(1L))
             .andExpect(jsonPath("$.type").value("EXERCISE"))
             .andExpect(jsonPath("$.name").value("수정된 카테고리"))
+
+        redisService.delete(refreshToken)
     }
 
     @Test
@@ -184,6 +192,8 @@ class CategoryControllerTest {
         resultActions.andExpect(handler().handlerType(CategoryController::class.java))
             .andExpect(handler().methodName("deleteCategory"))
             .andExpect(status().isOk)
+
+        redisService.delete(refreshToken)
     }
 
     @Test
