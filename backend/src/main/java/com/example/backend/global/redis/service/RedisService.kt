@@ -28,6 +28,10 @@ class RedisService(
         return redisDao.get(key)
     }
 
+    fun getKeys(pattern: String): Set<String> {
+        return redisDao.findKeysByPattern(pattern)
+    }
+
     fun exists(key: String): Boolean {
         return redisDao.exists(key)
     }
@@ -68,12 +72,12 @@ class RedisService(
     fun saveGroupInfo(groupId: Long, groupResponseDto: GroupResponseDto) {
         val objectMapper = jacksonObjectMapper()
         val groupJson = objectMapper.writeValueAsString(groupResponseDto)
-        redisDao.save("group:$groupId", groupJson)
+        redisDao.save("group:top3:$groupId", groupJson)
     }
 
     // 그룹 정보 가져오기
     fun getGroupInfo(groupId: Long): GroupResponseDto? {
-        val groupJson = redisDao.get("group:$groupId")
+        val groupJson = redisDao.get("group:top3:$groupId")
         return if (groupJson != null) {
             val objectMapper = jacksonObjectMapper()
             objectMapper.readValue(groupJson, GroupResponseDto::class.java)

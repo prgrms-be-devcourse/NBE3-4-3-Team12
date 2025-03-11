@@ -4,6 +4,7 @@ import com.example.backend.domain.group.dto.GroupResponseDto
 import com.example.backend.global.redis.service.RedisService
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+
 @Service
 class GroupTopViewService(
     private val redisService: RedisService,
@@ -37,18 +38,18 @@ class GroupTopViewService(
         }
     }
     fun getSavedTop3ViewedGroups(): List<GroupResponseDto> {
-        val topGroupIds = redisService.get("group:top3")
-            ?.split(",")
-            ?.map { it.trim() }
-            ?.mapNotNull { it.toLongOrNull() }
-            ?: emptyList()
+        val keys = redisService.getKeys("group:top3:*")
+        val topGroupIds = keys.mapNotNull { key ->
+            key.replace("group:top3:", "").toLongOrNull()
+        }
+        // 각 groupId에 대해 정보 조회
         return topGroupIds.mapNotNull { groupId ->
-            var groupResponseDto = redisService.getGroupInfo(groupId)
+            val groupResponseDto = redisService.getGroupInfo(groupId)
             groupResponseDto
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 * * * * *")
     fun showTop3Posts() {
         redisService.delete(topGroupKey)
         val topPosts = getTop3ViewedGroups()
