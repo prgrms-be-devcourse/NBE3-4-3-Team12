@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class ChatMessage(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0L,  // UUID 직접 생성
+    val id: Long = 0L,
     val groupId: Long,
     val senderId: Long,
     val content: String,

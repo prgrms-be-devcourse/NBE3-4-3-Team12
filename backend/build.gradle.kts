@@ -38,7 +38,6 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
 
     implementation("org.springframework.boot:spring-boot-starter-websocket")
-    implementation("org.springframework.boot:spring-boot-starter-messaging")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
