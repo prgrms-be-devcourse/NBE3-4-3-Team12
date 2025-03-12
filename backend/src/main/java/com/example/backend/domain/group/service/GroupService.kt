@@ -84,6 +84,7 @@ class GroupService(
         val group : Group = groupRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
 		if(redisService.getGroupInfo(group.id)!=null){
             redisService.delete("group:top3:${group.id}")
+            redisService.delete("group:views:${group.id}")
         }
         if (group.status == GroupStatus.COMPLETED){
 			group.updateStatus(GroupStatus.DELETED)

@@ -37,17 +37,35 @@ class GroupTopViewService(
             groupResponseDto
         }
     }
-    fun getSavedTop3ViewedGroups(): List<GroupResponseDto> {
-        val keys = redisService.getKeys("group:top3:*")
-        val topGroupIds = keys.mapNotNull { key ->
-            key.replace("group:top3:", "").toLongOrNull()
-        }
-        // 각 groupId에 대해 정보 조회
-        return topGroupIds.mapNotNull { groupId ->
-            val groupResponseDto = redisService.getGroupInfo(groupId)
-            groupResponseDto
+
+fun getSavedTop3ViewedGroups(): List<GroupResponseDto> {
+    val keys = redisService.getKeys("group:top3:*")
+    val topGroupIds = keys.mapNotNull { key ->
+        key.replace("group:top3:", "").toLongOrNull()
+    }.toMutableList()
+
+    val topGroups = topGroupIds.mapNotNull { groupId ->
+        redisService.getGroupInfo(groupId)
+    }.toMutableList()
+
+    // 현재 그룹 개수가 3개보다 적다면 추가 조회
+    if (topGroups.size < 3) {
+        val neededCount = 3 - topGroups.size
+
+        // 기존 topGroupIds에 없는 새로운 인기 게시글 조회
+        val additionalGroups = getTop3ViewedGroups()
+            .filter { it.id !in topGroupIds } // 기존 데이터 제외
+            .take(neededCount) // 부족한 개수만큼 추가
+
+        additionalGroups.forEach { group ->
+            redisService.saveGroupInfo(group.id, group) // Redis에 저장
+            topGroupIds.add(group.id)
+            topGroups.add(group)
         }
     }
+
+    return topGroups
+}
 
 
    @Scheduled(cron = "0 0 0 * * SUN")
