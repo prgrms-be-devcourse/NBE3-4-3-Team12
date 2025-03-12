@@ -61,13 +61,14 @@ class RedisService(
     // 조회한 사용자 마킹
     fun markUserAsViewed(groupId: Long, userId: Long) {
         val userViewKey = "group:user:viewed:$groupId:$userId"
-        //redisDao.save(userViewKey, "viewed", TimeUnit.SECONDS.toSeconds(30));
+        // redisDao.save(userViewKey, "viewed", TimeUnit.SECONDS.toSeconds(30)); 테스트용
         redisDao.save(userViewKey, "viewed", TimeUnit.DAYS.toSeconds(1)) // 24시간 동안만 조회한 것으로 처리
     }
 
     fun getAllKeys(): List<String> {
         return redisDao.getAllKeys()
     }
+
     // 그룹 정보 저장 (예시: GroupResponseDto를 JSON 문자열로 변환하여 저장)
     fun saveGroupInfo(groupId: Long, groupResponseDto: GroupResponseDto) {
         val objectMapper = jacksonObjectMapper()
