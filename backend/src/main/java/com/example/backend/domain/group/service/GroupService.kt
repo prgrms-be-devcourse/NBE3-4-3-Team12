@@ -21,6 +21,7 @@ import com.example.backend.domain.vote.dto.VoteResultDto
 import com.example.backend.domain.vote.repository.VoteRepository
 import com.example.backend.domain.vote.service.VoteService
 import com.example.backend.domain.voter.repository.VoterRepository
+import com.example.backend.global.redis.service.RedisService
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,8 @@ class GroupService(
     val voteRepository: VoteRepository,
     val voterRepository: VoterRepository,
     private val voteService: VoteService,
-    private val groupViewService: GroupViewService
+    private val groupViewService: GroupViewService,
+    private val redisService: RedisService
 ) {
     @Transactional
     fun create(groupRequestDto : GroupRequestDto, id : Long) : GroupResponseDto{
@@ -80,7 +82,10 @@ class GroupService(
     @Transactional
     fun deleteGroup(id : Long) {
         val group : Group = groupRepository.findById(id).orElseThrow{throw GroupException(GroupErrorCode.NOT_FOUND)}
-		if (group.status == GroupStatus.COMPLETED){
+		if(redisService.getGroupInfo(group.id)!=null){
+            redisService.delete("group:top3:${group.id}")
+        }
+        if (group.status == GroupStatus.COMPLETED){
 			group.updateStatus(GroupStatus.DELETED)
 		}
         group.updateStatus(GroupStatus.DELETED)

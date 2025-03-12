@@ -49,7 +49,7 @@ class GroupController(
 
     @GetMapping("/topViews")
     fun getTopPosts(): ResponseEntity<List<GroupResponseDto>> {
-        val response = groupTopViewService.getTop3ViewedPosts()
+        val response = groupTopViewService.getSavedTop3ViewedGroups()
         return ResponseEntity(response, HttpStatusCode.valueOf(200))
     }
 
@@ -81,9 +81,7 @@ class GroupController(
         if (memberId == null || groupId == null) {
             return ResponseEntity.badRequest().body("그룹 또는 회원의 데이터가 없습니다.")
         }
-
         groupService.joinGroup(groupId, memberId)
-
         return ResponseEntity(HttpStatus.OK)
     }
 

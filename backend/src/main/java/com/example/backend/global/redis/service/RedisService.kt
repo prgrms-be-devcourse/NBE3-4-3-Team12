@@ -28,6 +28,10 @@ class RedisService(
         return redisDao.get(key)
     }
 
+    fun getKeys(pattern: String): Set<String> {
+        return redisDao.findKeysByPattern(pattern)
+    }
+
     fun exists(key: String): Boolean {
         return redisDao.exists(key)
     }
@@ -49,12 +53,15 @@ class RedisService(
     // 사용자 조회 여부 체크
     fun isUserViewed(groupId: Long, userId: Long): Boolean {
         val userViewKey = "group:user:viewed:$groupId:$userId"
+        val viewed = redisDao.exists(userViewKey)
+        println("Checking if user $userId viewed group $groupId: $viewed")
         return redisDao.exists(userViewKey)
     }
 
     // 조회한 사용자 마킹
     fun markUserAsViewed(groupId: Long, userId: Long) {
         val userViewKey = "group:user:viewed:$groupId:$userId"
+        //redisDao.save(userViewKey, "viewed", TimeUnit.SECONDS.toSeconds(30));
         redisDao.save(userViewKey, "viewed", TimeUnit.DAYS.toSeconds(1)) // 24시간 동안만 조회한 것으로 처리
     }
 
@@ -65,18 +72,23 @@ class RedisService(
     fun saveGroupInfo(groupId: Long, groupResponseDto: GroupResponseDto) {
         val objectMapper = jacksonObjectMapper()
         val groupJson = objectMapper.writeValueAsString(groupResponseDto)
-        redisDao.save("group:$groupId", groupJson)
+        redisDao.save("group:top3:$groupId", groupJson)
     }
 
     // 그룹 정보 가져오기
     fun getGroupInfo(groupId: Long): GroupResponseDto? {
-        val groupJson = redisDao.get("group:$groupId")
+        val groupJson = redisDao.get("group:top3:$groupId")
         return if (groupJson != null) {
             val objectMapper = jacksonObjectMapper()
             objectMapper.readValue(groupJson, GroupResponseDto::class.java)
         } else {
             null
         }
+    }
+    fun incrementViewCount(groupId: Long) {
+        val groupKey = "group:views:$groupId"
+        val currentCount = get(groupKey)?.toLong() ?: 0
+        save(groupKey, (currentCount + 1).toString())
     }
 
     fun addBlackList(refreshToken: String, expirationTimeInSeconds: Long) {

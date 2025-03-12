@@ -53,6 +53,9 @@ class RedisDao(
     fun multiGet(keys: Set<String>): List<String?> {
         return redisTemplate.opsForValue().multiGet(keys) ?: emptyList()
     }
+    fun findKeysByPattern(pattern: String): Set<String> {
+        return redisTemplate.keys(pattern) ?: emptySet()
+    }
 
     // 모든 데이터 반환
     fun findAllKeys(): Set<String> {
