@@ -108,6 +108,9 @@ class GroupService(
                 groupModifyRequestDto.groupStatus
         );
         groupRepository.save(group);
+        if(redisService.getGroupInfo(group.id)!=null){
+            redisService.saveGroupInfo(group.id,GroupResponseDto(group));
+        }
         return GroupResponseDto(group);
     }
 

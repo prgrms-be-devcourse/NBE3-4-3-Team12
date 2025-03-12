@@ -49,7 +49,9 @@ class GroupTopViewService(
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * SUN")
+
+   @Scheduled(cron = "0 0 0 * * SUN")
+   //@Scheduled(cron = "0 * * * * *") 테스트용
     fun showTop3Posts() {
         redisService.delete(topGroupKey)
         val topPosts = getTop3ViewedGroups()
