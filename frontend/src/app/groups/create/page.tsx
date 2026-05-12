@@ -158,27 +158,28 @@ export default function CreateGroupPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen pb-10">
             <MainMenu />
-            <div className="max-w-4xl mx-auto bg-white p-10 mt-10 rounded-lg shadow-lg">
+            <div className="app-shell mt-8">
+            <div className="page-card">
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     {/*  제목 입력 */}
                     <div>
-                        <label className="block text-gray-700 font-semibold">제목</label>
+                        <label className="block font-semibold text-[var(--text-soft)]">제목</label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="ui-input"
                             placeholder="제목을 입력하세요."
                         />
                     </div>
 
                     {/* 모집 구분 선택 */}
                     <div>
-                        <label className="block text-gray-700 font-semibold">모집 구분</label>
+                        <label className="block font-semibold text-[var(--text-soft)]">모집 구분</label>
                         <select
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="ui-select"
                             onChange={(e) => {
                                 const selectedType = e.target.value;
                                 if (!selectedType) return;
@@ -202,9 +203,9 @@ export default function CreateGroupPage() {
 
                     {/* 모집 분야 선택 */}
                     <div>
-                        <label className="block text-gray-700 font-semibold">모집 분야</label>
+                        <label className="block font-semibold text-[var(--text-soft)]">모집 분야</label>
                         <select
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="ui-select"
                             onChange={(e) => {
                                 const selectedCategory = categories.find(
                                     (c) => c.name === e.target.value
@@ -226,7 +227,7 @@ export default function CreateGroupPage() {
                         {/* 선택된 모집 분야를 라벨로 표시 */}
                         <div className="mt-3 flex flex-wrap gap-2">
                             {selectedCategories.map((category) => (
-                                <span key={`selected-${category.id}-${category.type}`} className="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
+                                <span key={`selected-${category.id}-${category.type}`} className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
                         {category.type} - {category.name}
                                     <button
                                         onClick={() => handleCategoryRemove(category.id)}
@@ -241,13 +242,13 @@ export default function CreateGroupPage() {
 
                     {/* 모집 인원 설정 (숫자만 입력 가능) */}
                     <div className="flex items-center space-x-2">
-                        <label className="block text-gray-700 font-semibold">최대 인원</label>
-                        <div className="flex items-center border border-gray-300 rounded-md">
+                        <label className="block font-semibold text-[var(--text-soft)]">최대 인원</label>
+                        <div className="flex items-center rounded-xl border border-[var(--line)] bg-white/90">
                             {/* 감소 버튼 */}
                             <button
                                 type="button"
                                 onClick={() => setMaxParticipants((prev) => Math.max(1, Number(prev) - 1))}
-                                className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-l-md"
+                                className="rounded-l-xl bg-emerald-100 px-3 py-2 hover:bg-emerald-200"
                             >
                                 -
                             </button>
@@ -264,7 +265,7 @@ export default function CreateGroupPage() {
                                         setMaxParticipants(value === "" ? "" : numValue);
                                     }
                                 }}
-                                className="w-16 px-2 text-center border-none focus:outline-none"
+                                className="w-16 border-none bg-transparent px-2 text-center focus:outline-none"
                                 inputMode="numeric"
                                 min={1}
                                 style={{
@@ -277,7 +278,7 @@ export default function CreateGroupPage() {
                             <button
                                 type="button"
                                 onClick={() => setMaxParticipants((prev) => Number(prev) + 1)}
-                                className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-r-md"
+                                className="rounded-r-xl bg-emerald-100 px-3 py-2 hover:bg-emerald-200"
                             >
                                 +
                             </button>
@@ -299,13 +300,13 @@ export default function CreateGroupPage() {
                     {/*/!*  장소 투표 *!/*/}
                     <div>
                         <div className="flex items-center justify-between">
-                            <label className="block text-gray-700 font-semibold">
+                            <label className="block font-semibold text-[var(--text-soft)]">
                                 장소 투표 *
                             </label>
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(true)}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                className="btn-primary"
                             >
                                 장소 추가
                             </button>
@@ -325,11 +326,11 @@ export default function CreateGroupPage() {
 
                         {/*  내용 입력 칸 */}
                         <div>
-                            <label className="block text-gray-700 font-semibold">내용</label>
+                            <label className="block font-semibold text-[var(--text-soft)]">내용</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md h-32"
+                                className="ui-textarea h-32"
                                 placeholder="내용을 입력하세요."
                             ></textarea>
                         </div>
@@ -342,19 +343,20 @@ export default function CreateGroupPage() {
                             <button
                                 type="button"
                                 onClick={() => router.back()}
-                                className="bg-gray-300 text-gray-700 px-6 py-2 rounded-md"
+                                className="btn-secondary px-6"
                             >
                                 돌아가기
                             </button>
                             <button
                                 type="submit"
-                                className="bg-green-500 text-white px-6 py-2 rounded-md"
+                                className="btn-primary px-6"
                                 disabled={loading}
                             >
                                 {loading ? "등록 중..." : "등록"}
                             </button>
                         </div>
                 </form>
+            </div>
             </div>
         </div>
 );

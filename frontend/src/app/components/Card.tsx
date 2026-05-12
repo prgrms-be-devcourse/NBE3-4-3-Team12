@@ -18,9 +18,9 @@ type CardProps = {
 };
 
 const categoryColors: Record<string, string> = {
-  STUDY: "bg-blue-200",
-  HOBBY: "bg-yellow-200",
-  EXERCISE: "bg-purple-200",
+  STUDY: "bg-emerald-100 text-emerald-800",
+  HOBBY: "bg-lime-100 text-lime-800",
+  EXERCISE: "bg-green-100 text-green-800",
 };
 
 const statusMapping: Record<string, string> = {
@@ -29,8 +29,8 @@ const statusMapping: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  모집중: "bg-green-200",
-  마감: "bg-red-200",
+  모집중: "bg-emerald-200 text-emerald-900",
+  마감: "bg-stone-200 text-stone-700",
 };
 
 const categoryMapping: Record<string, string> = {
@@ -41,10 +41,11 @@ const categoryMapping: Record<string, string> = {
 
 const Card = ({ id, title, category, status }: CardProps) => {
   const router = useRouter();
+  const categoryKey = category.length > 0 ? category[0].name : "";
   const displayedStatus = statusMapping[status] || status;
   const displayedCategory =
-    category.length > 0
-      ? categoryMapping[category[0].name] || category[0].name
+    categoryKey
+      ? categoryMapping[categoryKey] || categoryKey
       : "미정"; // 첫 번째 카테고리만 표시, 기본값 "미정"
 
   const handleJoin = async (event: React.MouseEvent) => {
@@ -61,16 +62,16 @@ const Card = ({ id, title, category, status }: CardProps) => {
 
   return (
     <div
-      className="border p-4 rounded shadow-md w-64 bg-white flex flex-col justify-between"
+      className="glass-surface group w-full rounded-2xl p-5 shadow-[0_8px_24px_rgba(33,152,93,0.09)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(33,152,93,0.18)] flex flex-col justify-between"
       onClick={()=>router.push(`/groups/${id}`)}
     >
       {/* 제목 */}
-      <h2 className="text-md font-semibold">{title}</h2>
+      <h2 className="line-clamp-2 text-base font-bold text-[var(--text-main)]">{title}</h2>
 
       {/* 카테고리 */}
       <span
         className={`text-sm px-3 py-1 rounded-md mt-2 inline-block w-fit ${
-          categoryColors[displayedCategory] || "bg-gray-200"
+          categoryColors[categoryKey] || "bg-gray-200 text-gray-700"
         }`}
       >
         {displayedCategory}
@@ -81,7 +82,7 @@ const Card = ({ id, title, category, status }: CardProps) => {
         {/* 모집 상태 */}
         <span
           className={`text-sm px-3 py-1 rounded-md ${
-            statusColors[displayedStatus] || "bg-gray-200"
+            statusColors[displayedStatus] || "bg-gray-200 text-gray-700"
           }`}
         >
           {displayedStatus}
@@ -90,7 +91,7 @@ const Card = ({ id, title, category, status }: CardProps) => {
         {/* 참가하기 버튼 */}
         <button
             onClick={handleJoin}
-            className="bg-gray-600 text-white px-4 py-1 rounded-md text-sm">
+            className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-strong)]">
           참가하기
         </button>
       </div>

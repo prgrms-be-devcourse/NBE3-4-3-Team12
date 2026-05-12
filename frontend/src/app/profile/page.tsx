@@ -55,17 +55,18 @@ const MyInfoPage = () => {
     }
 
     return (
-        <div>
+        <div className="min-h-screen pb-10">
             <MainMenu/>
-            <div className="mt-6 max-w-lg mx-auto p-8 bg-white rounded-xl shadow-xl text-lg">
+            <div className="app-shell mt-8 max-w-3xl">
+            <div className="page-card text-lg">
                 <h1 className="text-2xl font-bold mb-6">내 정보</h1>
                 <div className="mb-6">
-                    <p className="text-gray-700">이름: {user.nickname}</p>
-                    <p className="text-gray-700">이메일: {user.email}</p>
+                    <p className="text-[var(--text-soft)]">이름: {user.nickname}</p>
+                    <p className="text-[var(--text-soft)]">이메일: {user.email}</p>
                 </div>
                 <button
                     onClick={handleEditProfile} // 버튼 클릭 시 프로필 수정 페이지로 이동
-                    className="w-full bg-blue-500 text-white py-3 rounded-lg text-lg hover:bg-blue-600"
+                    className="btn-primary w-full py-3 text-lg"
                 >
                     프로필 수정
                 </button>
@@ -77,11 +78,11 @@ const MyInfoPage = () => {
                         groups.map((group) => (
                             <li
                                 key={group.id}
-                                className="p-4 border rounded-xl flex justify-between text-lg cursor-pointer hover:bg-gray-100"
+                                className="flex cursor-pointer justify-between rounded-xl border border-[var(--line)] bg-white/80 p-4 text-lg hover:bg-emerald-50"
                                 onClick={() => handleGroupClick(group.id)} // 그룹 클릭 시 해당 페이지로 이동
                             >
                                 <span>{group.title}</span>
-                                <span className="text-base text-gray-500">{group.status}</span>
+                                <span className="text-base text-[var(--text-soft)]">{group.status}</span>
                             </li>
                         ))
                     )}
@@ -94,15 +95,16 @@ const MyInfoPage = () => {
                         locations.map((location) => (
                             <li
                                 key={location.id}
-                                className="p-4 border rounded-xl flex justify-between text-lg cursor-pointer hover:bg-gray-100"
+                                className="flex cursor-pointer justify-between rounded-xl border border-[var(--line)] bg-white/80 p-4 text-lg hover:bg-emerald-50"
                                 onClick={() => handleGroupClick(location.groupId)} // 그룹 클릭 시 해당 페이지로 이동
                             >
                                 <span>{location.title}</span>
-                                <span className="text-base text-gray-500">{location.location}</span>
+                                <span className="text-base text-[var(--text-soft)]">{location.location}</span>
                             </li>
                         ))
                     )}
                 </ul>
+            </div>
             </div>
         </div>
     );

@@ -3,6 +3,7 @@
 import React, {useState} from "react";
 import {useRouter} from "next/navigation"; // useRouter 훅 사용
 import {updateUserProfile} from "@/app/api";
+import MainMenu from "@/app/components/MainMenu";
 
 const ProfileEditPage = () => {
     const [nickname, setNickname] = useState(""); // nickname 상태
@@ -38,31 +39,34 @@ const ProfileEditPage = () => {
     };
 
     return (
-        <div className="mt-6 max-w-lg mx-auto p-8 bg-white rounded-xl shadow-xl text-lg">
-            <h1 className="text-2xl font-bold mb-6">프로필 수정</h1>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <div className="mb-6">
-                    <label htmlFor="nickname" className="block text-gray-700 mb-2">이름</label>
-                    <input
-                        type="text"
-                        id="nickname"
-                        value={nickname}
-                        onChange={handleNicknameChange}
-                        className="w-full p-3 border rounded-lg"
-                        placeholder="새로운 이름을 입력하세요"
-                    />
+        <div className="min-h-screen pb-10">
+            <MainMenu />
+            <div className="app-shell mt-8 max-w-2xl">
+                <div className="page-card text-lg">
+                    <h1 className="mb-6 text-2xl font-bold">프로필 수정</h1>
+                    {error && <p className="mb-4 text-red-500">{error}</p>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-6">
+                            <label htmlFor="nickname" className="mb-2 block text-[var(--text-soft)]">이름</label>
+                            <input
+                                type="text"
+                                id="nickname"
+                                value={nickname}
+                                onChange={handleNicknameChange}
+                                className="ui-input"
+                                placeholder="새로운 이름을 입력하세요"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`w-full py-3 text-lg ${loading ? "btn-secondary" : "btn-primary"}`}
+                        >
+                            {loading ? "수정 중..." : "수정 완료"}
+                        </button>
+                    </form>
                 </div>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full py-3 rounded-lg text-lg ${
-                        loading ? "bg-gray-500" : "bg-blue-500"
-                    } text-white hover:bg-blue-600`}
-                >
-                    {loading ? "수정 중..." : "수정 완료"}
-                </button>
-            </form>
+            </div>
         </div>
     );
 };

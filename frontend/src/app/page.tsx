@@ -2,10 +2,13 @@
 
 import MainMenu from "./components/MainMenu";
 import CardList from "./components/CardList";
-import { getGroups, getTop3Posts } from "@/app/api";
-import { useEffect, useState } from "react";
+import {getGroups, getTop3Posts} from "@/app/api";
+import {useEffect, useState} from "react";
+import {useSearchParams} from "next/navigation";
 
 export default function Home() {
+    const searchParams = useSearchParams();
+    const keyword = (searchParams.get("q") || "").trim().toLowerCase();
     const [groups, setGroups] = useState<any[]>([]); // 그룹 데이터 상태
     const [topPosts, setTopPosts] = useState<any[]>([]); // 인기 게시물 상태
 
@@ -31,24 +34,29 @@ export default function Home() {
         fetchTopPosts(); // 컴포넌트가 마운트되면 인기 게시물 API 호출
     }, []); // 빈 배열로 한 번만 호출됨
 
+    const filteredGroups = keyword
+        ? groups.filter((g) => `${g.title} ${g.description ?? ""}`.toLowerCase().includes(keyword))
+        : groups;
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <MainMenu />
+        <div className="min-h-screen pb-10">
+            <MainMenu/>
+
             {/* 인기 게시물 섹션 */}
-            <div className="my-8">
-                <h3 className="text-xl font-semibold mb-4">인기 게시물</h3>
+            <section className="mx-auto my-8 w-[95%] max-w-6xl">
+                <h3 className="mb-4 text-2xl font-bold text-[var(--text-main)]">인기 게시물</h3>
                 {topPosts.length > 0 ? (
-                    <CardList groups={topPosts} /> // 인기 게시물 데이터를 CardList 컴포넌트로 전달
+                    <CardList groups={topPosts}/> // 인기 게시물 데이터를 CardList 컴포넌트로 전달
                 ) : (
-                    <p className="text-center text-gray-500">인기 게시물이 없습니다.</p>
+                    <p className="text-center text-[var(--text-soft)]">인기 게시물이 없습니다.</p>
                 )}
-            </div>
+            </section>
 
             {/* 그룹 목록 섹션 */}
-            <div className="my-8">
-                <h3 className="text-xl font-semibold mb-4">모든 그룹</h3>
-                <CardList groups={groups} /> {/* 그룹 목록을 CardList 컴포넌트로 전달 */}
-            </div>
+            <section className="mx-auto my-8 w-[95%] max-w-6xl">
+                <h3 className="mb-4 text-2xl font-bold text-[var(--text-main)]">모든 그룹</h3>
+                <CardList groups={filteredGroups}/> {/* 그룹 목록을 CardList 컴포넌트로 전달 */}
+            </section>
         </div>
     );
 }

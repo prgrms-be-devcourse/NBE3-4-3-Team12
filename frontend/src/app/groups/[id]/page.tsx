@@ -191,25 +191,25 @@ export default function GroupDetailPage() {
     console.log("그룹 소유자 여부:", isGroupOwner);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen pb-10">
             <MainMenu />
-            <div className="min-h-screen bg-gray-100">
-                <main className="max-w-4xl mx-auto bg-white p-8 mt-10 rounded-lg shadow-lg">
+            <div className="app-shell mt-8">
+                <main className="page-card">
                     {/* 제목 */}
                     <h2 className="text-4xl font-extrabold">{group.title}</h2>
                     <div className="flex justify-between items-center mt-4">
-                        <span className="text-gray-700 font-bold">{group.author}</span>
+                        <span className="font-bold text-[var(--text-soft)]">{group.author}</span>
                         <span
                             className={`ml-2 px-2 py-1 text-sm rounded-full ${group.status === "RECRUITING"
-                                ? "bg-green-500 text-white"
-                                : "bg-red-500 text-white"
+                                ? "bg-emerald-500 text-white"
+                                : "bg-stone-400 text-white"
                                 }`}
                         >
                             {group.status}
                         </span>
                     </div>
                     {/* 상태 */}
-                    <hr className="my-4 border-gray-300" />
+                    <hr className="my-4 border-[var(--line)]" />
 
                     {/* 모집 정보 */}
                     <div className="mt-4 space-y-4">
@@ -220,7 +220,7 @@ export default function GroupDetailPage() {
                                 {group.field.map((field) => (
                                     <span
                                         key={field.id}
-                                        className="px-3 py-1 text-sm font-medium bg-blue-200 text-blue-700 rounded-full"
+                                        className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800"
                                     >
                                         {field.type}
                                     </span>
@@ -235,7 +235,7 @@ export default function GroupDetailPage() {
                                 {group.field.map((field) => (
                                     <span
                                         key={field.id}
-                                        className="px-3 py-1 text-sm font-medium border border-gray-400 text-gray-700 rounded-full"
+                                        className="rounded-full border border-[var(--line)] px-3 py-1 text-sm font-medium text-[var(--text-soft)]"
                                     >
                                         {field.name}
                                     </span>
@@ -247,13 +247,13 @@ export default function GroupDetailPage() {
                     {/* 조회수 표시 */}
                     <div className="flex items-center space-x-2 mt-4">
                         <span className="font-semibold text-gray-900">조회수</span>
-                        <span className="text-gray-700">{group.viewCount}회</span> {/* 조회수 출력 */}
+                        <span className="text-[var(--text-soft)]">{group.viewCount}회</span> {/* 조회수 출력 */}
                     </div>
 
                     {/* 프로젝트 설명 */}
                     <div className="mt-6">
-                        <span className="text-gray-700 font-semibold">프로젝트 내용</span>
-                        <p className="mt-2 text-gray-800 leading-relaxed">
+                        <span className="font-semibold text-[var(--text-soft)]">프로젝트 내용</span>
+                        <p className="mt-2 leading-relaxed text-[var(--text-main)]">
                             {group.description}
                         </p>
                     </div>
@@ -263,7 +263,7 @@ export default function GroupDetailPage() {
 
                         {group.status === "RECRUITING" && (
                             <button
-                                className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg mt-3"
+                                className="btn-primary mt-3"
                                 onClick={() => setIsVoteModalOpen(true)} // ✅ 모달 열기
                             >
                                 투표 참가
@@ -277,7 +277,7 @@ export default function GroupDetailPage() {
                                     onLocationSelect={(location) => console.log(location)}
                                     selectedLocations={selectedLocations}
                                 />
-                                <p className="mt-2 text-gray-700">최종 투표 결과</p>
+                                <p className="mt-2 text-[var(--text-soft)]">최종 투표 결과</p>
                             </>
                         )}
                     </div>
@@ -287,25 +287,25 @@ export default function GroupDetailPage() {
                         {isGroupOwner && (
                             <>
                                 <button
-                                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-6 py-2 rounded-lg"
+                                    className="rounded-lg bg-amber-500 px-6 py-2 font-medium text-white hover:bg-amber-600"
                                     onClick={() => router.push(`/groups/update/${id}`)}
                                 >
                                     수정
                                 </button>
                                 <button
                                     onClick={handleDelete}
-                                    className="bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2 rounded-lg">
+                                    className="btn-danger px-6">
                                     삭제
                                 </button>
                             </>
                         )}
                         <button onClick={() => router.back()}
-                            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium px-6 py-2 rounded-lg">
+                            className="btn-secondary px-6">
                             돌아가기
                         </button>
                         <button
                             onClick={handleJoin}
-                            className="bg-gray-800 hover:bg-black text-white font-medium px-6 py-2 rounded-lg">
+                            className="btn-primary px-6">
                             참가하기
                         </button>
                     </div>
@@ -314,7 +314,7 @@ export default function GroupDetailPage() {
                     {isMember && (
                         <div className="mt-8">
                             <h3 className="text-lg font-semibold">그룹 채팅</h3>
-                            <div className="bg-gray-100 p-4 h-64 overflow-y-auto rounded-lg">
+                            <div className="h-64 overflow-y-auto rounded-lg border border-[var(--line)] bg-white/70 p-4">
                                 {messages.map((msg, index) => (
                                     <div key={index} className="mb-2">
                                         <span className="font-bold">{msg.sender}:</span> {msg.content}
@@ -331,12 +331,12 @@ export default function GroupDetailPage() {
                                             sendMessage();
                                         }
                                     }}
-                                    className="flex-1 border p-2 rounded-lg"
+                                    className="ui-input flex-1"
                                     placeholder="메시지를 입력하세요..."
                                 />
                                 <button
                                     onClick={sendMessage}
-                                    className="ml-2 bg-green-500 text-white px-4 py-2 rounded-lg"
+                                    className="btn-primary ml-2"
                                 >
                                     전송
                                 </button>

@@ -17,27 +17,34 @@ export default function KakaoMap({ onLocationSelect, selectedLocations }: KakaoM
 
     useEffect(() => {
         if (!mapRef.current) return;
+        if (typeof window === "undefined") return;
+
+        const kakao = window.kakao;
+        if (!kakao || !kakao.maps) {
+            // SDK가 아직 로드되지 않은 경우 현재 렌더 사이클에서는 초기화하지 않음
+            return;
+        }
 
         // 카카오맵 로드
-        window.kakao.maps.load(() => {
+        kakao.maps.load(() => {
             const options = {
-                center: new window.kakao.maps.LatLng(37.566826, 126.978656),
+                center: new kakao.maps.LatLng(37.566826, 126.978656),
                 level: 3
             };
 
-            const map = new window.kakao.maps.Map(mapRef.current, options);
-            const geocoder = new window.kakao.maps.services.Geocoder();
+            const map = new kakao.maps.Map(mapRef.current, options);
+            const geocoder = new kakao.maps.services.Geocoder();
 
             const markers = [];
 
             // 여러 마커를 표시
             if (selectedLocations && selectedLocations.length > 0) {
                 // 바운드 객체 생성
-                const bounds = new window.kakao.maps.LatLngBounds();
+                const bounds = new kakao.maps.LatLngBounds();
 
                 selectedLocations.forEach((location) => {
-                    const position = new window.kakao.maps.LatLng(location.latitude, location.longitude);
-                    const marker = new window.kakao.maps.Marker({
+                    const position = new kakao.maps.LatLng(location.latitude, location.longitude);
+                    const marker = new kakao.maps.Marker({
                         position,
                         map
                     });
@@ -63,14 +70,14 @@ export default function KakaoMap({ onLocationSelect, selectedLocations }: KakaoM
             }
 
 
-            window.kakao.maps.event.addListener(map, 'click', (mouseEvent: any) => {
+            kakao.maps.event.addListener(map, 'click', (mouseEvent: any) => {
                 const latlng = mouseEvent.latLng;
 
                 geocoder.coord2Address(
                     latlng.getLng(),
                     latlng.getLat(),
                     (result, status) => {
-                        if (status === window.kakao.maps.services.Status.OK && result[0]) {
+                        if (status === kakao.maps.services.Status.OK && result[0]) {
                             const address = result[0].address.address_name;
                             onLocationSelect({
                                 address,

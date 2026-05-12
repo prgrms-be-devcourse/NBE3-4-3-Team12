@@ -74,49 +74,49 @@ export default function VoteModal({ isOpen, onClose, groupId, onVoteCreated }: V
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-[600px] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm">
+            <div className="page-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold">투표 장소 추가</h3>
+                    <h3 className="text-xl font-bold text-[var(--text-main)]">투표 장소 추가</h3>
                     <button
                         onClick={handleClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-[var(--text-soft)] hover:text-[var(--accent-strong)]"
                     >
                         ✕
                     </button>
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2">
+                    <label className="mb-2 block font-medium text-[var(--text-soft)]">
                         장소명 *
                     </label>
                     <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="ui-input"
                         placeholder="예) 스타벅스 강남점"
                     />
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2">
+                    <label className="mb-2 block font-medium text-[var(--text-soft)]">
                         위치 선택 *
                     </label>
-                    <div className="h-96 rounded-md overflow-hidden border">
+                    <div className="h-96 overflow-hidden rounded-xl border border-[var(--line)]">
                         <KakaoMap onLocationSelect={handleLocationSelect} />
                     </div>
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">
+                    <label className="mb-2 block font-medium text-[var(--text-soft)]">
                         선택된 주소
                     </label>
                     <input
                         type="text"
                         value={selectedLocation?.address || ''}
                         readOnly
-                        className="w-full px-3 py-2 border rounded-md bg-gray-50"
+                        className="ui-input bg-emerald-50"
                         placeholder="지도에서 위치를 선택하세요"
                     />
                 </div>
@@ -128,18 +128,10 @@ export default function VoteModal({ isOpen, onClose, groupId, onVoteCreated }: V
                 )}
 
                 <div className="flex justify-end gap-2">
-                    <button
-                        onClick={handleClose}
-                        className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                        disabled={loading}
-                    >
+                    <button onClick={handleClose} className="btn-secondary" disabled={loading}>
                         취소
                     </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                        disabled={loading}
-                    >
+                    <button onClick={handleSubmit} className="btn-primary" disabled={loading}>
                         {loading ? '처리 중...' : '추가하기'}
                     </button>
                 </div>

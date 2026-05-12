@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #f2fff5;
+    --bg-soft: #e2f8e9;
+    --surface: #ffffff;
+    --surface-strong: #f6fff8;
+    --text-main: #154a28;
+    --text-soft: #3b6f4c;
+    --accent: #2eb872;
+    --accent-strong: #21985d;
+    --line: #bfe9cd;
+  }
+
+  body {
+    color: var(--text-main);
+    background:
+      radial-gradient(circle at 10% 10%, rgba(46, 184, 114, 0.16), transparent 32%),
+      radial-gradient(circle at 85% 0%, rgba(160, 241, 189, 0.35), transparent 30%),
+      linear-gradient(180deg, #f7fff9 0%, var(--bg-main) 45%, #edfff2 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(8px);
+  }
+
+  .app-shell {
+    @apply mx-auto w-[95%] max-w-6xl;
+  }
+
+  .page-card {
+    @apply glass-surface rounded-3xl p-6 shadow-[0_14px_35px_rgba(33,152,93,0.08)];
+  }
+
+  .ui-input {
+    @apply w-full rounded-xl border border-[var(--line)] bg-white/90 px-4 py-2 text-[var(--text-main)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-emerald-200;
+  }
+
+  .ui-select {
+    @apply ui-input;
+  }
+
+  .ui-textarea {
+    @apply ui-input min-h-28;
+  }
+
+  .btn-primary {
+    @apply rounded-xl bg-[var(--accent)] px-4 py-2 font-semibold text-white transition hover:bg-[var(--accent-strong)];
+  }
+
+  .btn-secondary {
+    @apply rounded-xl border border-[var(--line)] bg-white/90 px-4 py-2 font-medium text-[var(--text-soft)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)];
+  }
+
+  .btn-danger {
+    @apply rounded-xl bg-rose-500 px-4 py-2 font-semibold text-white transition hover:bg-rose-600;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-2xl border border-[var(--line)] bg-white/80;
+  }
+}

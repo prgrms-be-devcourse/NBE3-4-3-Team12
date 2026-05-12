@@ -60,9 +60,9 @@ export default function VoteModal({groupId, onClose}: VoteModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h2 className="text-xl font-bold mb-4">장소 투표</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm">
+            <div className="page-card w-full max-w-md">
+                <h2 className="mb-4 text-xl font-bold text-[var(--text-main)]">장소 투표</h2>
 
                 {loading ? (
                     <p>로딩 중...</p>
@@ -73,24 +73,21 @@ export default function VoteModal({groupId, onClose}: VoteModalProps) {
                         {votes.map((vote) => (
                             <li
                                 key={vote.id}
-                                className={`p-3 border rounded-lg shadow-sm cursor-pointer ${
+                                className={`cursor-pointer rounded-xl border p-3 shadow-sm ${
                                     selectedVoteIds.includes(vote.id)
-                                        ? "bg-blue-500 text-white"
-                                        : "hover:bg-gray-200"
+                                        ? "border-emerald-500 bg-emerald-500 text-white"
+                                        : "border-[var(--line)] bg-white/80 hover:bg-emerald-50"
                                 }`}
                                 onClick={() => handleVoteClick(vote.id)}
                             >
                                 <p className="font-semibold">{vote.location}</p>
-                                <p className="text-gray-600">{vote.address}</p>
+                                <p className={selectedVoteIds.includes(vote.id) ? "text-emerald-50" : "text-[var(--text-soft)]"}>{vote.address}</p>
                             </li>
                         ))}
                     </ul>
                 )}
 
-                <button
-                    className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                    onClick={onClose}
-                >
+                <button className="btn-secondary mt-4" onClick={onClose}>
                     닫기
                 </button>
             </div>

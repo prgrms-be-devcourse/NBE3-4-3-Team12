@@ -36,7 +36,7 @@ class CookieUtil {
             .httpOnly(true)
             .secure(true)
             .path("/")
-            .sameSite("None")
+            .sameSite("Lax")
             .maxAge(expiration)
             .build()
 

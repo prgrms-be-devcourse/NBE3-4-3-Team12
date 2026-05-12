@@ -34,29 +34,29 @@ const AdminLoginPage = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl">
+        <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="page-card w-full max-w-md">
                 <h1 className="text-2xl font-bold text-center mb-6">관리자 로그인</h1>
                 {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
-                        <label className="block text-gray-700 mb-2">아이디</label>
+                        <label className="mb-2 block text-[var(--text-soft)]">아이디</label>
                         <input
                             type="text"
                             value={adminName}
                             onChange={handleChange(setAdminName)}
-                            className="w-full p-3 border rounded-lg"
+                            className="ui-input"
                             placeholder="아이디를 입력하세요"
                             required
                         />
                     </div>
                     <div className="mb-6">
-                        <label className="block text-gray-700 mb-2">비밀번호</label>
+                        <label className="mb-2 block text-[var(--text-soft)]">비밀번호</label>
                         <input
                             type="password"
                             value={password}
                             onChange={handleChange(setPassword)}
-                            className="w-full p-3 border rounded-lg"
+                            className="ui-input"
                             placeholder="비밀번호를 입력하세요"
                             required
                         />
@@ -64,9 +64,7 @@ const AdminLoginPage = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-3 rounded-lg text-lg ${
-                            loading ? "bg-gray-500" : "bg-blue-500"
-                        } text-white hover:bg-blue-600`}
+                        className={`w-full py-3 text-lg ${loading ? "btn-secondary" : "btn-primary"}`}
                     >
                         {loading ? "로그인 중..." : "로그인"}
                     </button>
