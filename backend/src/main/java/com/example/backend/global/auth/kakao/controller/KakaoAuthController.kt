@@ -3,7 +3,7 @@ package com.example.backend.global.auth.kakao.controller
 import com.example.backend.global.auth.kakao.dto.KakaoTokenResponseDto
 import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto
 import com.example.backend.global.auth.kakao.service.KakaoAuthService
-import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.auth.service.AuthTokenCookieService
 import com.example.backend.global.response.ApiResponse
 import com.example.backend.global.response.ErrorResponse
 import jakarta.servlet.http.HttpServletRequest
@@ -27,7 +27,7 @@ import java.net.URI
 @RestController
 class KakaoAuthController(
     private val kakaoAuthService: KakaoAuthService,
-    private val cookieService: CookieService,
+    private val authTokenCookieService: AuthTokenCookieService,
     @Value("\${CLIENT_BASE_URL}") private val clientBaseUrl: String
 ) {
     /**
@@ -94,8 +94,8 @@ class KakaoAuthController(
     ): ResponseEntity<Any> {
         val loginDto = kakaoAuthService.login(kakaoId, kakaoTokenDto)
 
-        cookieService.addAccessTokenToCookie(loginDto.accessToken, response)
-        cookieService.addRefreshTokenToCookieWithSameSiteNone(loginDto.refreshToken, response)
+        authTokenCookieService.addAccessTokenToCookie(loginDto.accessToken, response)
+        authTokenCookieService.addRefreshTokenToCookieWithSameSiteNone(loginDto.refreshToken, response)
 
         return ResponseEntity.status(HttpStatus.FOUND)
             .headers(headers)
@@ -122,9 +122,9 @@ class KakaoAuthController(
         response: HttpServletResponse,
     ): ResponseEntity<ApiResponse<String>> {
 
-        val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+        val refreshToken = authTokenCookieService.getRefreshTokenFromCookie(request)
         kakaoAuthService.logout(refreshToken)
-        cookieService.clearTokenFromCookie(response)
+        authTokenCookieService.clearTokenFromCookie(response)
 
         val headers = HttpHeaders()
         headers.location = URI.create(clientBaseUrl)

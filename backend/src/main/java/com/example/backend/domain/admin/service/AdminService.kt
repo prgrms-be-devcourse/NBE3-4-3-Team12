@@ -6,7 +6,7 @@ import com.example.backend.domain.admin.exception.AdminException
 import com.example.backend.domain.admin.repository.AdminRepository
 import com.example.backend.domain.member.dto.MemberInfoDto
 import com.example.backend.domain.member.service.MemberService
-import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.auth.service.AuthTokenCookieService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
 import com.example.backend.global.redis.service.RedisService
@@ -21,7 +21,7 @@ class AdminService(
     private val adminRepository: AdminRepository,
     private val memberService: MemberService,
     private val passwordEncoder: PasswordEncoder,
-    private val cookieService: CookieService,
+    private val authTokenCookieService: AuthTokenCookieService,
     private val tokenProvider: TokenProvider,
     private val redisService: RedisService,
     private val jwtUtil: JwtUtil
@@ -44,7 +44,7 @@ class AdminService(
     @Transactional
     fun generateToken(admin: Admin, response: HttpServletResponse) {
         val accessToken: String = tokenProvider.generateToken(admin)
-        cookieService.addAccessTokenToCookie(accessToken, response)
+        authTokenCookieService.addAccessTokenToCookie(accessToken, response)
     }
 
     // 리프레시 토큰 저장
@@ -54,18 +54,18 @@ class AdminService(
         val expiryDate = tokenProvider.getRefreshTokenExpiryDate()
 
         redisService.save(refreshToken, admin.adminName, expiryDate)
-        cookieService.addRefreshTokenToCookie(refreshToken, response)
+        authTokenCookieService.addRefreshTokenToCookie(refreshToken, response)
     }
 
     // admin 객체에 리프레시 토큰 만료
     @Transactional
     fun logout(response: HttpServletResponse, request: HttpServletRequest) {
-        cookieService.clearTokenFromCookie(response)
+        authTokenCookieService.clearTokenFromCookie(response)
 
-        val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+        val refreshToken = authTokenCookieService.getRefreshTokenFromCookie(request)
         if (refreshToken != null) {
             redisService.addBlackList(refreshToken, jwtUtil.getRefreshTokenExpirationTime())
-        } else  {
+        } else {
             throw AdminException(AdminErrorCode.NOT_FOUND_ADMIN)
         }
     }

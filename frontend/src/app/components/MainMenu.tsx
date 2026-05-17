@@ -41,9 +41,10 @@ const MainMenu = () => {
     };
 
     return (
-        <nav className="glass-surface sticky top-0 z-20 mx-auto mt-3 flex w-[95%] max-w-6xl items-center justify-between rounded-2xl px-5 py-4 shadow-[0_10px_30px_rgba(33,152,93,0.12)]">
+        <nav
+            className="glass-surface sticky top-0 z-20 mx-auto mt-3 flex w-[95%] max-w-6xl items-center justify-between rounded-2xl px-5 py-4 shadow-[0_10px_30px_rgba(33,152,93,0.12)]">
             <Link href="/">
-                <h1 className="text-xl font-black tracking-wide text-[var(--text-main)]">MOYODANG</h1>
+                <h1 className="text-xl font-black tracking-wide text-[var(--text-main)]">모두모여</h1>
             </Link>
             <form onSubmit={handleSearch} className="mx-6 hidden flex-1 items-center gap-2 md:flex">
                 <input
@@ -57,22 +58,26 @@ const MainMenu = () => {
             <div className="flex items-center gap-4">
                 {isLoggedIn && (
                     <Link href="/groups/create">
-                        <button className="rounded-xl bg-[var(--accent)] px-4 py-2 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
+                        <button
+                            className="rounded-xl bg-[var(--accent)] px-4 py-2 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]">
                             모임 만들기
                         </button>
                     </Link>
                 )}
                 {isLoggedIn && (
-                    <Link href="/profile" className="font-medium text-[var(--text-soft)] transition hover:text-[var(--accent-strong)]">
+                    <Link href="/profile"
+                          className="font-medium text-[var(--text-soft)] transition hover:text-[var(--accent-strong)]">
                         내정보
                     </Link>
                 )}
                 {isLoggedIn ? (
-                    <button onClick={handleKakaoLogout} className="font-medium text-[var(--text-soft)] transition hover:text-[var(--accent-strong)]">
+                    <button onClick={handleKakaoLogout}
+                            className="font-medium text-[var(--text-soft)] transition hover:text-[var(--accent-strong)]">
                         로그아웃
                     </button>
                 ) : (
-                    <button onClick={handleKakaoLogin} className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-medium text-[var(--text-soft)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]">
+                    <button onClick={handleKakaoLogin}
+                            className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-medium text-[var(--text-soft)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]">
                         로그인
                     </button>
                 )}

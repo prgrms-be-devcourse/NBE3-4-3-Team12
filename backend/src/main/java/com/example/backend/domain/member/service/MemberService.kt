@@ -7,7 +7,7 @@ import com.example.backend.domain.member.exception.MemberErrorCode
 import com.example.backend.domain.member.exception.MemberException
 import com.example.backend.domain.member.repository.MemberRepository
 import com.example.backend.global.auth.kakao.dto.KakaoUserInfoResponseDto
-import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.auth.service.AuthTokenCookieService
 import com.example.backend.global.auth.util.TokenProvider
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 class MemberService(
     private val memberRepository: MemberRepository,
     private val tokenProvider: TokenProvider,
-    private val cookieService: CookieService
+    private val authTokenCookieService: AuthTokenCookieService
 ) {
 
     @Transactional(readOnly = true)
@@ -67,7 +67,7 @@ class MemberService(
             member.id!!, member.nickname, member.email
         )
 
-        cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
+        authTokenCookieService.addAccessTokenToCookie(reissuedAccessToken, response)
         return MemberInfoDto(member)
     }
 

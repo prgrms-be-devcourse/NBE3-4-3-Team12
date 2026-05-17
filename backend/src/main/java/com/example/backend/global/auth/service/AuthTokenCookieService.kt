@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
  * @author 100mi
  */
 @Service
-class CookieService(
+class AuthTokenCookieService(
     private val cookieUtil: CookieUtil,
     private val jwtUtil: JwtUtil
 ) {

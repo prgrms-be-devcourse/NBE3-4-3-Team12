@@ -4,7 +4,7 @@ import com.example.backend.domain.member.exception.MemberException
 import com.example.backend.global.auth.exception.AuthErrorCode
 import com.example.backend.global.auth.exception.AuthException
 import com.example.backend.global.auth.kakao.service.KakaoAuthService
-import com.example.backend.global.auth.service.CookieService
+import com.example.backend.global.auth.service.AuthTokenCookieService
 import com.example.backend.global.auth.service.CustomUserDetailService
 import com.example.backend.global.auth.util.JwtUtil
 import com.example.backend.global.auth.util.TokenProvider
@@ -29,7 +29,7 @@ import java.io.IOException
  */
 @Configuration
 class MemberAuthFilter(
-    private val cookieService: CookieService,
+    private val authTokenCookieService: AuthTokenCookieService,
     private val customUserDetailService: CustomUserDetailService,
     private val kakaoAuthService: KakaoAuthService,
     private val redisService: RedisService,
@@ -45,10 +45,10 @@ class MemberAuthFilter(
         request: HttpServletRequest, response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val accessToken = cookieService.getAccessTokenFromCookie(request)
-        val refreshToken = cookieService.getRefreshTokenFromCookie(request)
+        val accessToken = authTokenCookieService.getAccessTokenFromCookie(request)
+        val refreshToken = authTokenCookieService.getRefreshTokenFromCookie(request)
 
-        if(!redisService.isValidRefreshToken(refreshToken!!)) {
+        if (!redisService.isValidRefreshToken(refreshToken!!)) {
             handleAuthError(AuthException(AuthErrorCode.AUTHORIZATION_FAILED), "", request, response)
             return
         }
@@ -145,7 +145,7 @@ class MemberAuthFilter(
         request: HttpServletRequest, response: HttpServletResponse
     ) {
         redisService.addBlackList(refreshToken, jwtUtil.getRefreshTokenExpirationTime())
-        cookieService.clearTokenFromCookie(response)
+        authTokenCookieService.clearTokenFromCookie(response)
         SecurityContextHolder.clearContext()
 
         response.status = ex.status.value()
@@ -177,8 +177,8 @@ class MemberAuthFilter(
                 memberTokenReissueDto.email
             )
 
-            cookieService.addAccessTokenToCookie(reissuedAccessToken, response)
-            cookieService.addRefreshTokenToCookieWithSameSiteNone(memberTokenReissueDto.refreshToken, response)
+            authTokenCookieService.addAccessTokenToCookie(reissuedAccessToken, response)
+            authTokenCookieService.addRefreshTokenToCookieWithSameSiteNone(memberTokenReissueDto.refreshToken, response)
 
             return reissuedAccessToken
         } catch (e: MemberException) {
